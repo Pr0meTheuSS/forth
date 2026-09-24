@@ -1,4 +1,4 @@
-
+#pragma once
 #define maxStackSize 1024
 
 typedef struct Stack {

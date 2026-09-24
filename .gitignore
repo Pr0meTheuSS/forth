@@ -59,3 +59,4 @@ dkms.conf
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+./Testing

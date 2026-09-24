@@ -2,9 +2,8 @@ cmake_minimum_required(VERSION 3.30)
 
 project(forth LANGUAGES C)
 
-add_executable(forth 
+add_executable(forth
     main.c
-    stack.c
 )
 
 target_compile_options(forth PRIVATE
@@ -15,3 +14,10 @@ target_compile_options(forth PRIVATE
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
+
+option(TESTING "Build tests for ${PROJECT_NAME}" ON)
+
+if(TESTING)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
