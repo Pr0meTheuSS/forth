@@ -7,3 +7,11 @@ add_executable(forth
     stack.c
 )
 
+target_compile_options(forth PRIVATE
+    -Wall
+    -Werror
+    -Wextra
+    -Wpedantic
+)
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
