@@ -1,5 +1,6 @@
 add_executable(test_stack
     test_stack.c
+    ../stack.c
 )
 
 target_include_directories(test_stack PRIVATE

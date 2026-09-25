@@ -4,6 +4,7 @@ project(forth LANGUAGES C)
 
 add_executable(forth
     main.c
+    stack.c
 )
 
 target_compile_options(forth PRIVATE
@@ -13,7 +14,7 @@ target_compile_options(forth PRIVATE
     -Wpedantic
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fsanitize=address,undefined")
 
 option(TESTING "Build tests for ${PROJECT_NAME}" ON)
 
