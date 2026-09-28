@@ -6,18 +6,26 @@ void test_forth_program() {
   VM vm;
   vm.stack.topIndex = -1;
 
-  Command commands[] = {{.type = COMMAND_INT,
-                         .data.int_command = {.value = 42},
-                         .execute = execute_int},
-                        {.type = COMMAND_INT,
-                         .data.int_command = {.value = 52},
-                         .execute = execute_int},
-                        {.type = COMMAND_INT,
-                         .data.int_command = {.value = 10},
-                         .execute = execute_int},
-                        {.type = COMMAND_SUM, .execute = execute_sum},
+  Command commands[] = {
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 42},
+       .execute = execute_int},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 52},
+       .execute = execute_int},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 10},
+       .execute = execute_int},
+      {.type = COMMAND_SUM, .execute = execute_sum},
 
-                        {.type = COMMAND_MULT, .execute = execute_mult}};
+      {.type = COMMAND_MULT, .execute = execute_mult},
+      {.type = COMMAND_DUP, .execute = execute_dup},
+      {.type = COMMAND_DROP, .execute = execute_drop},
+      {.type = COMMAND_DUP, .execute = execute_dup},
+      {.type = COMMAND_DIV, .execute = execute_div},
+
+  };
+
   for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i) {
     commands[i].execute(&vm, &commands[i].data);
     printf("stack size: %d\n", vm.stack.topIndex + 1);

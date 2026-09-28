@@ -1,0 +1,8 @@
+/home/prometheus/Рабочий стол/pets/forth/build/CMakeFiles/forth.dir
+/home/prometheus/Рабочий стол/pets/forth/build/CMakeFiles/test.dir
+/home/prometheus/Рабочий стол/pets/forth/build/CMakeFiles/edit_cache.dir
+/home/prometheus/Рабочий стол/pets/forth/build/CMakeFiles/rebuild_cache.dir
+/home/prometheus/Рабочий стол/pets/forth/build/tests/CMakeFiles/test_stack.dir
+/home/prometheus/Рабочий стол/pets/forth/build/tests/CMakeFiles/test.dir
+/home/prometheus/Рабочий стол/pets/forth/build/tests/CMakeFiles/edit_cache.dir
+/home/prometheus/Рабочий стол/pets/forth/build/tests/CMakeFiles/rebuild_cache.dir

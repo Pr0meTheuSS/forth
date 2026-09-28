@@ -6,7 +6,15 @@ typedef struct VM {
   Stack stack;
 } VM;
 
-typedef enum { COMMAND_INT, COMMAND_SUM, COMMAND_MULT } CommandType;
+typedef enum {
+  COMMAND_INT,
+  COMMAND_SUM,
+  COMMAND_MULT,
+  COMMAND_SUB,
+  COMMAND_DIV,
+  COMMAND_DUP,
+  COMMAND_DROP
+} CommandType;
 
 typedef struct {
   int value;
@@ -40,6 +48,15 @@ int vm_pop(VM *vm) {
   return ret.value;
 }
 
+int vm_top(VM *vm) {
+  Ret ret = top(&(vm->stack));
+  if (ret.error) {
+    // TODO: make VM errors
+    exit(1);
+  }
+  return ret.value;
+}
+
 void execute_int(VM *vm, const CommandData *data) {
   vm_push(vm, data->int_command.value);
 }
@@ -51,9 +68,34 @@ void execute_sum(VM *vm, const CommandData *data) {
   vm_push(vm, a + b);
 }
 
+void execute_sub(VM *vm, const CommandData *data) {
+  (void)data;
+  int b = vm_pop(vm);
+  int a = vm_pop(vm);
+  vm_push(vm, a - b);
+}
+
 void execute_mult(VM *vm, const CommandData *data) {
   (void)data;
   int b = vm_pop(vm);
   int a = vm_pop(vm);
   vm_push(vm, a * b);
+}
+
+void execute_div(VM *vm, const CommandData *data) {
+  (void)data;
+  int b = vm_pop(vm);
+  int a = vm_pop(vm);
+  vm_push(vm, a / b);
+}
+
+void execute_drop(VM *vm, const CommandData *data) {
+  (void)data;
+  vm_pop(vm);
+}
+
+void execute_dup(VM *vm, const CommandData *data) {
+  (void)data;
+  int top = vm_top(vm);
+  vm_push(vm, top);
 }

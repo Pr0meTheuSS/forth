@@ -1,0 +1,1 @@
+/usr/bin/cc  -g -O0 -fsanitize=address,undefined -Wl,--dependency-file=CMakeFiles/forth.dir/link.d CMakeFiles/forth.dir/main.c.o CMakeFiles/forth.dir/stack.c.o -o forth
