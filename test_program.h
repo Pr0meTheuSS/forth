@@ -3,7 +3,7 @@
 #include "command.h"
 
 void test_forth_program() {
-  VM vm;
+  ComputeContext vm;
   vm.stack.topIndex = -1;
 
   Command commands[] = {
@@ -27,7 +27,7 @@ void test_forth_program() {
   };
 
   for (size_t i = 0; i < sizeof(commands) / sizeof(commands[0]); ++i) {
-    commands[i].execute(&vm, &commands[i].data);
+    commands[i].execute(&commands[i], &vm);
     printf("stack size: %d\n", vm.stack.topIndex + 1);
     for (int stackTopIndex = vm.stack.topIndex; stackTopIndex >= 0;
          --stackTopIndex) {

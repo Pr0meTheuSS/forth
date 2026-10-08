@@ -1,6 +1,8 @@
 add_executable(test_stack
     test_stack.c
     ../stack.c
+    ../command.c
+    ../compute_context.c
 )
 
 target_include_directories(test_stack PRIVATE

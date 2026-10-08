@@ -5,6 +5,8 @@ project(forth LANGUAGES C)
 add_executable(forth
     main.c
     stack.c
+    command.c
+    compute_context.c
 )
 
 target_compile_options(forth PRIVATE

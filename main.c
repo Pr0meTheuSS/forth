@@ -4,7 +4,7 @@
 #include "test_program.h"
 
 const char programTargetMessage[] = "Forth programms interpreter.";
-const char version[] = "v0.0.1";
+const char version[] = "v0.0.2";
 const char author[] = " by Y.Olimpiev";
 
 int main(void) {
@@ -13,6 +13,8 @@ int main(void) {
            programTargetMessage, version, author);
 
   printf("%s\n", cliWelcomeMessage);
+
   test_forth_program();
+
   return EXIT_SUCCESS;
 }
