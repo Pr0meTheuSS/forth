@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "command.h"
+#include "compute_context.h"
 
 void execute_int(Command *self, ComputeContext *vm) {
   assert(self->type == COMMAND_INT);
@@ -50,4 +51,30 @@ void execute_dup(Command *self, ComputeContext *vm) {
 
   Ret top = vm_top(vm);
   vm_push(vm, top.value);
+}
+
+// обработчики control-flow меняют счётчик:
+void execute_if(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_IF);
+  Ret cond = vm_top(ctx);
+  if (ctx->skip_depth > 0) {
+    ctx->skip_depth++; // вложенный IF внутри пропускаемого блока
+    return;
+  }
+  if (!cond.value)
+    ctx->skip_depth = 1;
+}
+
+void execute_else(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_ELSE);
+  if (ctx->skip_depth == 1)
+    ctx->skip_depth = 0; // переключаемся на ветку ELSE
+  else
+    ctx->skip_depth++; // skip_depth > 1 — вложенный, не трогаем
+}
+
+void execute_then(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_THEN);
+  if (ctx->skip_depth > 0)
+    ctx->skip_depth--;
 }
