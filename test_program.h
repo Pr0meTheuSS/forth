@@ -3,10 +3,17 @@
 #include "command.h"
 #include "compute_context.h"
 
+typedef struct Program {
+  Command *commands;
+  size_t commandsAmount;
+} Program;
+
 void test_forth_program() {
   ComputeContext vm;
   vm.stack.topIndex = -1;
   vm.skip_depth = 0;
+  Program programs[2];
+
   /*
   42 52 10
   SUM
@@ -14,7 +21,7 @@ void test_forth_program() {
   DUP
   DROP
   DUP
-  DIV  
+  DIV
   */
   Command program1[] = {
       {.type = COMMAND_INT,
@@ -35,6 +42,10 @@ void test_forth_program() {
       {.type = COMMAND_DIV, .execute = execute_div},
 
   };
+  programs[0] =
+      (Program){.commands = program1,
+                .commandsAmount = sizeof(program1) / sizeof(program1[0])};
+
   /*
   1 IF 2 ELSE 3 THEN
   */
@@ -53,27 +64,23 @@ void test_forth_program() {
       {.type = COMMAND_THEN, .execute = execute_then},
   };
 
-  // Execute program 1
-  for (size_t i = 0; i < sizeof(program1) / sizeof(program1[0]); ++i) {
-    vm_execute_command(&vm, &program1[i]);
-    printf("stack size: %d\n", vm.stack.topIndex + 1);
-    for (int stackTopIndex = vm.stack.topIndex; stackTopIndex >= 0;
-         --stackTopIndex) {
-      if (stackTopIndex >= 0) {
-        printf("\t[%d]: %d\n", stackTopIndex + 1, vm.stack.data[stackTopIndex]);
+  programs[1] =
+      (Program){.commands = program2,
+                .commandsAmount = sizeof(program2) / sizeof(program2[0])};
+  // Execute programs
+  for (size_t p = 0; p < sizeof(programs) / sizeof(programs[0]); ++p) {
+    printf("\tExecute program # %ld\n", p);
+    for (size_t i = 0; i < programs[p].commandsAmount; ++i) {
+      vm_execute_command(&vm, &programs[p].commands[i]);
+      printf("stack size: %d\n", vm.stack.topIndex + 1);
+      for (int stackTopIndex = vm.stack.topIndex; stackTopIndex >= 0;
+           --stackTopIndex) {
+        if (stackTopIndex >= 0) {
+          printf("\t[%d]: %d\n", stackTopIndex + 1,
+                 vm.stack.data[stackTopIndex]);
+        }
       }
     }
-  }
-  vm.stack.topIndex = -1;
-  // Execute program 2
-  for (size_t i = 0; i < sizeof(program2) / sizeof(program2[0]); ++i) {
-    vm_execute_command(&vm, &program2[i]);
-    printf("stack size: %d\n", vm.stack.topIndex + 1);
-    for (int stackTopIndex = vm.stack.topIndex; stackTopIndex >= 0;
-         --stackTopIndex) {
-      if (stackTopIndex >= 0) {
-        printf("\t[%d]: %d\n", stackTopIndex + 1, vm.stack.data[stackTopIndex]);
-      }
-    }
+    vm.stack.topIndex = -1;
   }
 }

@@ -4,7 +4,7 @@
 #include "test_program.h"
 
 const char programTargetMessage[] = "Forth programms interpreter.";
-const char version[] = "v0.0.1";
+const char version[] = "v0.0.3";
 const char author[] = " by Y.Olimpiev";
 
 int main(void) {
