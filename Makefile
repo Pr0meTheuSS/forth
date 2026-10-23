@@ -47,9 +47,6 @@ test-%: %
 
 .PHONY: all clean check $(TEST_NAMES)
 
-clean:
-	rm -f $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES)
-
 # Флаги для покрытия: без санитайзеров, зато с отладочной информацией и профайлингом
 COV_CFLAGS = -Wall -Wextra -g -O0 -fprofile-arcs -ftest-coverage
 COV_LDFLAGS = -lgcov
@@ -73,10 +70,6 @@ coverage: $(COV_BIN)
 	lcov --capture --directory . --output-file coverage.info
 	genhtml coverage.info --output-directory coverage_report
 
-clean:
-	rm -f $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) \
-	      $(cov-objs) $(COV_BIN) coverage.info coverage_report/* *.gcda *.gcno
-
 .PHONY: all clean check $(TEST_NAMES) coverage
 
 DOXYGEN = doxygen
@@ -88,6 +81,6 @@ docs:
 	$(DOXYGEN) $(DOXYFILE)
 
 clean:
-	rm -rf $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) \
-	      coverage_report coverage.info *.gcda *.gcno \
+	rm -rf $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) src/*.o \
+	      coverage_report coverage.info src/*.gcda src/*.gcno \
 	      docs/html
