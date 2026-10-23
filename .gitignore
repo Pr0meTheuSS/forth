@@ -1,6 +1,6 @@
 # Prerequisites
 *.d
-
+.vscode
 # Object files
 *.o
 *.ko
@@ -58,5 +58,12 @@ dkms.conf
 ./CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
-Makefile
 ./Testing
+docs/
+coverage.info
+coverage_report/
+forth
+tests
+tests_cov
+*.gcda
+*.gcno
