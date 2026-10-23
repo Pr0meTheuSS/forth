@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -22,7 +23,7 @@ void destroy_avl_tree(AvlTree *self) {
   }
   if (self->key) {
     free(self->key->data);
-    free(self->key);
+    free((void *)self->key);
   }
   destroy_avl_tree(self->left);
   destroy_avl_tree(self->right);
@@ -39,7 +40,7 @@ const Key *avl_tree_find(const AvlTree *self, const Key key) {
   const Key *root_key = self->key;
   const Key *search_key = &key;
 
-  int cmp_res = self->key->comp(root_key, search_key);
+  int cmp_res = self->key->comp(search_key, root_key);
   if (cmp_res == 0) {
     return root_key;
   }
@@ -75,9 +76,13 @@ Key *create_copy_key(Key key) {
 }
 
 bool avl_tree_insert(AvlTree *self, Key key) {
+  assert(key.data);
+  assert(key.size > 0);
+
   if (self == NULL) {
     return false;
   }
+
   if (self->key == NULL) {
     self->key = create_copy_key(key);
     return (self->key);
@@ -87,9 +92,12 @@ bool avl_tree_insert(AvlTree *self, Key key) {
   if (cmp_res == 0) {
     return false;
   }
+
   if (cmp_res < 0) {
+    self->left = self->left ? self->left : create_avl_tree();
     return avl_tree_insert(self->left, key);
   } else {
+    self->right = self->right ? self->right : create_avl_tree();
     return avl_tree_insert(self->right, key);
   }
 }
