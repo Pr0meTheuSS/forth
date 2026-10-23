@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "avl-tree.h"
+#include "test.h"
 
 bool init_avl_tree_test() {
   AvlTree *tree = create_avl_tree();
@@ -92,12 +93,7 @@ cleanup:
   return res;
 }
 
-typedef struct Test {
-  const char *name;
-  bool (*test)();
-} Test;
-
-Test tests[] = {
+static Test tests[] = {
     {.name = "init_avl_tree_test", .test = init_avl_tree_test},
     {.name = "insert_and_find_avl_tree_test",
      .test = insert_and_find_avl_tree_test},
