@@ -3,7 +3,7 @@
 
 typedef struct Command Command;
 typedef struct ComputeContext {
-  Stack stack;      // data stack for int values
+  Stack *stack;     // data stack for int values
   int branch_depth; // value of branch (if-else block) depth. 0 for out of
                     // if-else block scope
   unsigned char skip_depth;

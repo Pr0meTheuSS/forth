@@ -67,7 +67,7 @@ bool insert_and_find_lot_values_avl_tree_test() {
 
   for (int i = 0; i < 100; ++i) {
     Key key;
-    int key_value = i;
+    int key_value = (i + 50) % 100;
 
     key.data = &key_value;
     key.size = sizeof(key_value);

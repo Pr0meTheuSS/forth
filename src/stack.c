@@ -1,4 +1,17 @@
 #include "stack.h"
+#include <stdlib.h>
+
+Stack *create_stack() {
+  Stack *ret = (Stack *)malloc(sizeof(Stack));
+  if (!ret) {
+    return NULL;
+  }
+
+  ret->topIndex = -1;
+  return ret;
+}
+
+void destroy_stack(Stack *stack) { free(stack); }
 
 Ret push(Stack *stack, int value) {
   if (stack->topIndex >= maxStackSize) {

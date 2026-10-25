@@ -11,6 +11,9 @@ typedef struct Ret {
   int error;
 } Ret;
 
+Stack* create_stack();
+void destroy_stack(Stack*);
+
 Ret push(Stack *stack, int value);
 Ret top(Stack *stack);
 Ret pop(Stack *stack);

@@ -14,7 +14,7 @@ void vm_execute_command(ComputeContext *ctx, Command *command) {
 }
 
 Ret vm_push(ComputeContext *ctx, int value) {
-  Ret ret = push(&(ctx->stack), value);
+  Ret ret = push(ctx->stack, value);
   if (ret.error) {
     return (Ret){.value = 0, .error = -1};
   }
@@ -22,7 +22,7 @@ Ret vm_push(ComputeContext *ctx, int value) {
 }
 
 Ret vm_pop(ComputeContext *ctx) {
-  Ret ret = pop(&(ctx->stack));
+  Ret ret = pop(ctx->stack);
   if (ret.error) {
     return (Ret){.value = 0, .error = -1};
   }
@@ -30,7 +30,7 @@ Ret vm_pop(ComputeContext *ctx) {
 }
 
 Ret vm_top(ComputeContext *ctx) {
-  Ret ret = top(&(ctx->stack));
+  Ret ret = top(ctx->stack);
   if (ret.error) {
     return (Ret){.value = 0, .error = -1};
   }

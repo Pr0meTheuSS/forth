@@ -4,6 +4,9 @@
 
 typedef struct ComputeContext ComputeContext;
 
+ComputeContext *create_compute_context();
+void destroy_compute_context(ComputeContext *);
+
 typedef enum CommandType {
   COMMAND_INT,  // push int value to data-stack
   COMMAND_SUM,  // sum two top elements from data-stack

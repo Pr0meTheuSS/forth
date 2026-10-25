@@ -5,12 +5,14 @@
 // Либо подключить общий заголовок, например test_runner.h
 extern bool avl_tree_run_all_tests(void);
 extern bool stack_run_all_tests(void);
+extern bool forth_commands_run_all_tests(void);
 
 int main(void) {
   bool ok = true;
 
   ok = ok && avl_tree_run_all_tests();
   ok = ok && stack_run_all_tests();
+  ok = ok && forth_commands_run_all_tests();
   if (ok) {
     printf("All tests passed.\n");
     return 0;

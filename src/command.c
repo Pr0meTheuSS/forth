@@ -1,7 +1,28 @@
 #include <assert.h>
+#include <stdlib.h>
 
 #include "command.h"
 #include "compute_context.h"
+
+ComputeContext *create_compute_context() {
+  ComputeContext *ret = (ComputeContext *)malloc(sizeof(ComputeContext));
+  if (!ret) {
+    return NULL;
+  }
+  ret->branch_depth = 0;
+  ret->skip_depth = 0;
+  ret->stack = create_stack();
+
+  return ret;
+}
+
+void destroy_compute_context(ComputeContext *ctx) {
+  if (!ctx) {
+    return;
+  }
+  destroy_stack(ctx->stack);
+  free(ctx);
+}
 
 void execute_int(Command *self, ComputeContext *vm) {
   assert(self->type == COMMAND_INT);
