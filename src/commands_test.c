@@ -13,35 +13,6 @@ typedef struct Program {
   size_t commandsAmount;
 } Program;
 
-// void if_then_else_forth_commands_test() {
-//   /*
-//   1 IF 2 ELSE 3 THEN
-//   */
-//   Command program2[] = {
-//       {.type = COMMAND_INT,
-//        .data.int_command = {.value = 0},
-//        .execute = execute_int},
-//       {.type = COMMAND_IF, .execute = execute_if},
-//       {.type = COMMAND_INT,
-//        .data.int_command = {.value = 2},
-//        .execute = execute_int},
-//       {.type = COMMAND_ELSE, .execute = execute_else},
-//       {.type = COMMAND_INT,
-//        .data.int_command = {.value = 3},
-//        .execute = execute_int},
-//       {.type = COMMAND_THEN, .execute = execute_then},
-//   };
-
-//   programs[1] =
-//       (Program){.commands = program2,
-//                 .commandsAmount = sizeof(program2) / sizeof(program2[0])};
-//   // Execute programs
-//   for (size_t p = 0; p < sizeof(programs) / sizeof(programs[0]); ++p) {
-//     printf("\tExecute program # %ld\n", p);
-//     vm.stack.topIndex = -1;
-//   }
-// }
-
 bool forth_simple_calculation_test() {
   ComputeContext *compute_context = create_compute_context();
 
@@ -95,9 +66,93 @@ cleanup:
   return ret;
 }
 
+bool forth_if_branch_test() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  1 IF 2 ELSE 3 THEN
+  */
+  Command commands[] = {
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 1},
+       .execute = execute_int},
+      {.type = COMMAND_IF, .execute = execute_if},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 2},
+       .execute = execute_int},
+      {.type = COMMAND_ELSE, .execute = execute_else},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 3},
+       .execute = execute_int},
+      {.type = COMMAND_THEN, .execute = execute_then},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+  const int expectedStackTopForCommandIndex[] = {1, 1, 2, 2, 2, 2};
+
+  Program program =
+      (Program){.commands = commands, .commandsAmount = commandsAmount};
+
+  bool ret = true;
+  for (size_t i = 0; i < program.commandsAmount; ++i) {
+    vm_execute_command(compute_context, &program.commands[i]);
+    Ret top = vm_top(compute_context);
+    if (expectedStackTopForCommandIndex[i] != top.value) {
+      ret = false;
+      goto cleanup;
+    }
+  }
+cleanup:
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
+bool forth_else_branch_test() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  0 IF 2 ELSE 3 THEN
+  */
+  Command commands[] = {
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 0},
+       .execute = execute_int},
+      {.type = COMMAND_IF, .execute = execute_if},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 2},
+       .execute = execute_int},
+      {.type = COMMAND_ELSE, .execute = execute_else},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 3},
+       .execute = execute_int},
+      {.type = COMMAND_THEN, .execute = execute_then},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+  const int expectedStackTopForCommandIndex[] = {0, 0, 3, 3, 3, 3};
+
+  Program program =
+      (Program){.commands = commands, .commandsAmount = commandsAmount};
+
+  bool ret = true;
+  for (size_t i = 0; i < program.commandsAmount; ++i) {
+    vm_execute_command(compute_context, &program.commands[i]);
+    Ret top = vm_top(compute_context);
+    if (expectedStackTopForCommandIndex[i] != top.value) {
+      ret = false;
+      goto cleanup;
+    }
+  }
+cleanup:
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
 static Test tests[] = {
     {.name = "forth_simple_calculation_test",
      .test = forth_simple_calculation_test},
+    {.name = "forth_if_branch_test", .test = forth_if_branch_test},
+    {.name = "forth_if_branch_test", .test = forth_if_branch_test},
 };
 
 bool forth_commands_run_all_tests(void) {
