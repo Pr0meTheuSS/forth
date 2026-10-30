@@ -129,7 +129,7 @@ bool forth_else_branch_test() {
   };
 
   const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
-  const int expectedStackTopForCommandIndex[] = {0, 0, 3, 3, 3, 3};
+  const int expectedStackTopForCommandIndex[] = {0, 0, 0, 0, 3, 3};
 
   Program program =
       (Program){.commands = commands, .commandsAmount = commandsAmount};
@@ -152,7 +152,7 @@ static Test tests[] = {
     {.name = "forth_simple_calculation_test",
      .test = forth_simple_calculation_test},
     {.name = "forth_if_branch_test", .test = forth_if_branch_test},
-    {.name = "forth_if_branch_test", .test = forth_if_branch_test},
+    {.name = "forth_else_branch_test", .test = forth_else_branch_test},
 };
 
 bool forth_commands_run_all_tests(void) {

@@ -13,7 +13,7 @@ typedef struct AvlTree {
   struct AvlTree *left;
   struct AvlTree *right;
 
-  const Key* key;
+  const Key *key;
   int height;
 } AvlTree;
 
