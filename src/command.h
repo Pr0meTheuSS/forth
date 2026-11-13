@@ -17,7 +17,10 @@ typedef enum CommandType {
   COMMAND_DROP, // drop top element from data-stack
   COMMAND_IF,
   COMMAND_ELSE,
-  COMMAND_THEN
+  COMMAND_THEN,
+  COMMAND_DO,
+  COMMAND_LOOP,
+  COMMAND_EMIT
 } CommandType;
 
 typedef struct IntCommand {
@@ -45,3 +48,5 @@ void execute_dup(Command *self, ComputeContext *ctx);
 void execute_if(Command *self, ComputeContext *ctx);
 void execute_else(Command *self, ComputeContext *ctx);
 void execute_then(Command *self, ComputeContext *ctx);
+void execute_do(Command *self, ComputeContext *ctx);
+void execute_loop(Command *self, ComputeContext *ctx);

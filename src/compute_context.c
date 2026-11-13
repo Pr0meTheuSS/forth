@@ -1,9 +1,21 @@
 #include "compute_context.h"
 #include "command.h"
+#include <assert.h>
 
 int is_command_flow_control(const Command *command) {
   return (command->type == COMMAND_IF || command->type == COMMAND_ELSE ||
           command->type == COMMAND_THEN);
+}
+
+void vm_execute_program(ComputeContext *ctx, Program *program) {
+  assert(ctx);
+  assert(program);
+
+  for (; ctx->current_command_index < program->commandsAmount;) {
+    Command *current_command = &program->commands[ctx->current_command_index];
+
+    vm_execute_command(ctx, current_command);
+  }
 }
 
 void vm_execute_command(ComputeContext *ctx, Command *command) {
@@ -11,6 +23,7 @@ void vm_execute_command(ComputeContext *ctx, Command *command) {
     return;
   }
   command->execute(command, ctx);
+  ctx->current_command_index++;
 }
 
 Ret vm_push(ComputeContext *ctx, int value) {

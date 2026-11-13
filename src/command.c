@@ -12,7 +12,10 @@ ComputeContext *create_compute_context() {
   ret->branch_depth = 0;
   ret->skip_depth = 0;
   ret->stack = create_stack();
-
+  ret->current_command_index = 0;
+  ret->do_loop_index = 0;
+  ret->do_loop_limit = 0;
+  ret->do_start_command_index = 0;
   return ret;
 }
 
@@ -98,4 +101,27 @@ void execute_then(Command *self, ComputeContext *ctx) {
   assert(self->type == COMMAND_THEN);
   if (ctx->skip_depth > 0)
     ctx->skip_depth--;
+}
+
+void execute_do(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_DO);
+
+  ctx->do_loop_limit = vm_pop(ctx).value;
+  ctx->do_loop_index = vm_pop(ctx).value;
+  // запоминаем индекс стартовой команды цикла как индекс команды DO
+  ctx->do_start_command_index = ctx->current_command_index;
+}
+
+void execute_loop(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_LOOP);
+  ctx->do_loop_index++;
+
+  if (ctx->do_loop_index < ctx->do_loop_limit) {
+    // перекидываем индекс следующей к исполнению команды в программе на начало
+    // цикла
+    ctx->current_command_index = ctx->do_start_command_index;
+  } else {
+    // сбрасываем счётчики цикла при выполнении всех итераций
+    ctx->do_loop_limit = ctx->do_loop_index = 0;
+  }
 }

@@ -8,11 +8,6 @@
 #include "command.h"
 #include "compute_context.h"
 
-typedef struct Program {
-  Command *commands;
-  size_t commandsAmount;
-} Program;
-
 bool forth_simple_calculation_test() {
   ComputeContext *compute_context = create_compute_context();
 
@@ -147,13 +142,56 @@ cleanup:
   destroy_compute_context(compute_context);
   return ret;
 }
+// TODO: необходимо переработать процесс прогона тестов, добавив служебные
+// команды-точки останова для сравнения вершины стека с ожидаемым результатом
+// (команды {, ->, }) bool forth_do_loop_simple_test() {
+bool forth_do_loop_simple_test() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  0 0 10 DO 1 + LOOP
+  */
+  Command commands[] = {
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 0},
+       .execute = execute_int},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 0},
+       .execute = execute_int},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 10},
+       .execute = execute_int},
+      {.type = COMMAND_DO, .execute = execute_do},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 1},
+       .execute = execute_int},
+      {.type = COMMAND_SUM, .execute = execute_sum},
+      {.type = COMMAND_LOOP, .execute = execute_loop},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+
+  Program program =
+      (Program){.commands = commands, .commandsAmount = commandsAmount};
+
+  bool ret = true;
+  vm_execute_program(compute_context, &program);
+  Ret top = vm_top(compute_context);
+  if (top.error != 0 || 10 != top.value) {
+    ret = false;
+    goto cleanup;
+  }
+cleanup:
+  destroy_compute_context(compute_context);
+  return ret;
+}
 
 static Test tests[] = {
     {.name = "forth_simple_calculation_test",
      .test = forth_simple_calculation_test},
     {.name = "forth_if_branch_test", .test = forth_if_branch_test},
     {.name = "forth_else_branch_test", .test = forth_else_branch_test},
-};
+    {.name = "forth_do_loop_simple_test", .test = forth_do_loop_simple_test}};
 
 bool forth_commands_run_all_tests(void) {
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
