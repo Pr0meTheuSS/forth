@@ -5,7 +5,7 @@ LDFLAGS = -fsanitize=address,undefined
 TARGET = forth
 
 # Исходники проекта (реализации, НЕ тесты)
-SRCS = src/main.c src/command.c src/compute_context.c src/stack.c src/avl-tree.c
+SRCS = src/main.c src/command.c src/compute_context.c src/stack.c src/vector.c src/avl-tree.c
 OBJS = $(SRCS:.c=.o)
 
 # Все файлы *_test.c в src/ (не рекурсивно, только в этой папке)
