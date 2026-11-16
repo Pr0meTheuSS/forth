@@ -20,7 +20,9 @@ typedef enum CommandType {
   COMMAND_THEN,
   COMMAND_DO,
   COMMAND_LOOP,
-  COMMAND_EMIT
+  COMMAND_EMIT,
+  COMMAND_COMPILE,
+  COMMAND_END_COMPILE
 } CommandType;
 
 typedef struct IntCommand {
@@ -50,3 +52,5 @@ void execute_else(Command *self, ComputeContext *ctx);
 void execute_then(Command *self, ComputeContext *ctx);
 void execute_do(Command *self, ComputeContext *ctx);
 void execute_loop(Command *self, ComputeContext *ctx);
+void execute_compile(Command *self, ComputeContext *ctx);
+void execute_end_compile(Command *self, ComputeContext *ctx);

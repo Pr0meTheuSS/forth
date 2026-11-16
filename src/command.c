@@ -1,31 +1,7 @@
 #include <assert.h>
-#include <stdlib.h>
 
 #include "command.h"
 #include "compute_context.h"
-
-ComputeContext *create_compute_context() {
-  ComputeContext *ret = (ComputeContext *)malloc(sizeof(ComputeContext));
-  if (!ret) {
-    return NULL;
-  }
-  ret->branch_depth = 0;
-  ret->skip_depth = 0;
-  ret->stack = create_stack();
-  ret->current_command_index = 0;
-  ret->do_loop_index = 0;
-  ret->do_loop_limit = 0;
-  ret->do_start_command_index = 0;
-  return ret;
-}
-
-void destroy_compute_context(ComputeContext *ctx) {
-  if (!ctx) {
-    return;
-  }
-  destroy_stack(ctx->stack);
-  free(ctx);
-}
 
 void execute_int(Command *self, ComputeContext *vm) {
   assert(self->type == COMMAND_INT);
@@ -124,4 +100,19 @@ void execute_loop(Command *self, ComputeContext *ctx) {
     // сбрасываем счётчики цикла при выполнении всех итераций
     ctx->do_loop_limit = ctx->do_loop_index = 0;
   }
+}
+
+void execute_compile(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_COMPILE);
+  // ctx->compile_mode = true;
+  // Key newCompileWord;
+  // struct {
+  //     char name[64],
+  //     Program* subProgram
+  // } compileWorldEnrty;
+}
+
+void execute_end_compile(Command *self, ComputeContext *ctx) {
+  assert(self->type == COMMAND_END_COMPILE);
+  // ctx->compile_mode = false;
 }

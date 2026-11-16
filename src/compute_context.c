@@ -1,6 +1,39 @@
 #include "compute_context.h"
+#include "avl-tree.h"
 #include "command.h"
+
 #include <assert.h>
+#include <stdlib.h>
+
+ComputeContext *create_compute_context() {
+  ComputeContext *ret = (ComputeContext *)malloc(sizeof(ComputeContext));
+  if (!ret) {
+    return NULL;
+  }
+  ret->tree = create_avl_tree();
+  if (!ret->tree) {
+    return NULL;
+  }
+
+  ret->branch_depth = 0;
+  ret->skip_depth = 0;
+  ret->stack = create_stack();
+  ret->current_command_index = 0;
+  ret->do_loop_index = 0;
+  ret->do_loop_limit = 0;
+  ret->do_start_command_index = 0;
+  ret->compile_mode = false;
+  return ret;
+}
+
+void destroy_compute_context(ComputeContext *ctx) {
+  if (!ctx) {
+    return;
+  }
+  destroy_avl_tree(ctx->tree);
+  destroy_stack(ctx->stack);
+  free(ctx);
+}
 
 int is_command_flow_control(const Command *command) {
   return (command->type == COMMAND_IF || command->type == COMMAND_ELSE ||
@@ -19,6 +52,10 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
 }
 
 void vm_execute_command(ComputeContext *ctx, Command *command) {
+  // if (ctx->compile_mode) {
+  //     avl_tree_find(ctx->tree, Key key);
+  // }
+
   if (ctx->skip_depth && !is_command_flow_control(command)) {
     return;
   }

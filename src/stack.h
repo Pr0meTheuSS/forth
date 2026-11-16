@@ -1,4 +1,5 @@
 #pragma once
+
 #define maxStackSize 1024
 
 typedef struct Stack {
@@ -11,8 +12,8 @@ typedef struct Ret {
   int error;
 } Ret;
 
-Stack* create_stack();
-void destroy_stack(Stack*);
+Stack *create_stack();
+void destroy_stack(Stack *);
 
 Ret push(Stack *stack, int value);
 Ret top(Stack *stack);
