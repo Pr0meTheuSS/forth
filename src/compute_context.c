@@ -1,17 +1,19 @@
 #include "compute_context.h"
 #include "avl-tree.h"
 #include "command.h"
+#include "vector.h"
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 ComputeContext *create_compute_context() {
   ComputeContext *ret = (ComputeContext *)malloc(sizeof(ComputeContext));
   if (!ret) {
     return NULL;
   }
-  ret->tree = create_avl_tree();
-  if (!ret->tree) {
+  ret->custom_commands_tree = create_avl_tree();
+  if (!ret->custom_commands_tree) {
     return NULL;
   }
 
@@ -23,6 +25,8 @@ ComputeContext *create_compute_context() {
   ret->do_loop_limit = 0;
   ret->do_start_command_index = 0;
   ret->compile_mode = false;
+  ret->compile_mode = NO_COMPILE;
+  ret->commands_vector = create_vector();
   return ret;
 }
 
@@ -30,7 +34,8 @@ void destroy_compute_context(ComputeContext *ctx) {
   if (!ctx) {
     return;
   }
-  destroy_avl_tree(ctx->tree);
+  destroy_avl_tree(ctx->custom_commands_tree);
+  destroy_vector(ctx->commands_vector);
   destroy_stack(ctx->stack);
   free(ctx);
 }
@@ -44,17 +49,53 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
   assert(ctx);
   assert(program);
 
+  ctx->program = program;
   for (; ctx->current_command_index < program->commandsAmount;) {
     Command *current_command = &program->commands[ctx->current_command_index];
 
     vm_execute_command(ctx, current_command);
   }
 }
+typedef struct CustomWordSubProgramNode {
+  Command command;
+  Program subProgram;
+} CustomWordSubProgramNode;
+
+int command_comparator(const Key *left, const Key *right) {
+  CustomWordSubProgramNode *leftNode = (CustomWordSubProgramNode *)left->data;
+  CustomWordSubProgramNode *rightNode = (CustomWordSubProgramNode *)right->data;
+  return strcmp(leftNode->command.command_name,
+                rightNode->command.command_name);
+}
 
 void vm_execute_command(ComputeContext *ctx, Command *command) {
-  // if (ctx->compile_mode) {
-  //     avl_tree_find(ctx->tree, Key key);
-  // }
+
+  if (ctx->compile_mode == COMPILE) {
+    Node wordNode;
+
+    wordNode.size = sizeof(Command);
+    wordNode.data = command;
+
+    vector_append(ctx->commands_vector, wordNode);
+    ctx->current_command_index++;
+    return;
+  } else if (ctx->compile_mode == EXPECT_CUSTOM_WORD) {
+    AvlTree *tree = ctx->custom_commands_tree;
+
+    Key customWord;
+    customWord.size = sizeof(*command);
+    customWord.data = command;
+    customWord.comp = command_comparator;
+
+    bool ret = avl_tree_insert(tree, customWord);
+    if (!ret) {
+      // TODO: graceful fail
+      abort();
+    }
+    ctx->compile_mode = COMPILE;
+    ctx->current_command_index++;
+    return;
+  }
 
   if (ctx->skip_depth && !is_command_flow_control(command)) {
     return;

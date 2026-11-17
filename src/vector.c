@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-const size_t cDefaultVectorCapacity = 1;
+const size_t cDefaultVectorCapacity = 1024;
 
 typedef struct Vector {
   Node *nodes;
@@ -44,7 +44,7 @@ bool vector_append(Vector *vec, Node node) {
     }
     vec->capacity *= 2;
   }
-  if (!memcpy(&node, &vec->nodes[vec->size], sizeof(vec->nodes[0]))) {
+  if (!memcpy(&vec->nodes[vec->size], &node, sizeof(vec->nodes[0]))) {
     return false;
   }
   vec->size++;
@@ -65,5 +65,10 @@ bool vector_get(const Vector *vec, size_t index, Node *out) {
   if (index >= vec->size) {
     return false;
   }
-  return memcpy(&vec->nodes[index], out, sizeof(*out));
+  return memcpy(out, &vec->nodes[index], sizeof(*out));
+}
+
+size_t vector_size(const Vector *vec) {
+  assert(vec);
+  return vec->size;
 }

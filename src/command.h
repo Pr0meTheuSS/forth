@@ -22,7 +22,8 @@ typedef enum CommandType {
   COMMAND_LOOP,
   COMMAND_EMIT,
   COMMAND_COMPILE,
-  COMMAND_END_COMPILE
+  COMMAND_END_COMPILE,
+  UNKNOWN
 } CommandType;
 
 typedef struct IntCommand {
@@ -36,8 +37,8 @@ typedef union CommandData {
 typedef struct Command {
   CommandType type;
   CommandData data;
-
   void (*execute)(struct Command *self, ComputeContext *ctx);
+  const char command_name[64];
 } Command;
 
 void execute_int(Command *self, ComputeContext *ctx);

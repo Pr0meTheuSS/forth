@@ -104,15 +104,10 @@ void execute_loop(Command *self, ComputeContext *ctx) {
 
 void execute_compile(Command *self, ComputeContext *ctx) {
   assert(self->type == COMMAND_COMPILE);
-  // ctx->compile_mode = true;
-  // Key newCompileWord;
-  // struct {
-  //     char name[64],
-  //     Program* subProgram
-  // } compileWorldEnrty;
+  ctx->compile_mode = EXPECT_CUSTOM_WORD;
 }
 
 void execute_end_compile(Command *self, ComputeContext *ctx) {
   assert(self->type == COMMAND_END_COMPILE);
-  // ctx->compile_mode = false;
+  ctx->compile_mode = NO_COMPILE;
 }

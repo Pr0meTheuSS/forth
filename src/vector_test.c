@@ -14,6 +14,17 @@ bool assertIdleVector() {
   return ret;
 }
 
+bool assertEmptyVectorHasZeroSize() {
+  bool ret = true;
+
+  Vector *vec = create_vector();
+  ret = (vec != NULL);
+
+  ret = (vector_size(vec) == 0);
+  destroy_vector(vec);
+  return ret;
+}
+
 bool assertPushVector() {
   Vector *vec = create_vector();
   int pushingValue = 1;
@@ -58,12 +69,12 @@ cleanup:
   return ret;
 }
 
-static Test tests[] = {
-    {.name = "assertIdleVector", .test = assertIdleVector},
-    {.name = "assertPushVector", .test = assertPushVector},
-    {.name = "assertAppendAndGetNodeFromVector",
-     .test = assertAppendAndGetNodeFromVector},
-};
+static Test tests[] = {{.name = "assertIdleVector", .test = assertIdleVector},
+                       {.name = "assertPushVector", .test = assertPushVector},
+                       {.name = "assertAppendAndGetNodeFromVector",
+                        .test = assertAppendAndGetNodeFromVector},
+                       {.name = "assertEmptyVectorHasZeroSize",
+                        .test = assertEmptyVectorHasZeroSize}};
 
 bool vector_run_all_tests(void) {
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {

@@ -7,6 +7,7 @@
 
 #include "command.h"
 #include "compute_context.h"
+#include "vector.h"
 
 bool forth_simple_calculation_test() {
   ComputeContext *compute_context = create_compute_context();
@@ -186,12 +187,55 @@ cleanup:
   return ret;
 }
 
+bool forth_compile_custom_word() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  : square DUP * ;
+  */
+  Command commands[] = {
+      {.type = COMMAND_COMPILE,
+       .command_name = ":\0",
+       .execute = execute_compile},
+      {.type = UNKNOWN, .command_name = "square\0"},
+      {.type = COMMAND_DUP, .command_name = "DUP\0", .execute = execute_dup},
+      {.type = COMMAND_MULT, .command_name = "*\0", .execute = execute_mult},
+      {.type = COMMAND_END_COMPILE,
+       .command_name = ";\0",
+       .execute = execute_end_compile},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+
+  Program program =
+      (Program){.commands = commands, .commandsAmount = commandsAmount};
+
+  bool ret = true;
+  vm_execute_program(compute_context, &program);
+
+  Vector *commandsVector = compute_context->commands_vector;
+  for (size_t i = 0; i < vector_size(commandsVector); ++i) {
+    printf("access vector[%ld]\n", i);
+    Node node;
+    bool ok = vector_get(commandsVector, i, &node);
+    if (!ok) {
+      printf("Fail to access vector[%ld]\n", i);
+    }
+    Command *com = (Command *)node.data;
+    printf("%s ", com->command_name);
+  }
+cleanup:
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
 static Test tests[] = {
     {.name = "forth_simple_calculation_test",
      .test = forth_simple_calculation_test},
     {.name = "forth_if_branch_test", .test = forth_if_branch_test},
     {.name = "forth_else_branch_test", .test = forth_else_branch_test},
-    {.name = "forth_do_loop_simple_test", .test = forth_do_loop_simple_test}};
+    {.name = "forth_do_loop_simple_test", .test = forth_do_loop_simple_test},
+    {.name = "forth_compile_custom_word", .test = forth_compile_custom_word}};
 
 bool forth_commands_run_all_tests(void) {
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
