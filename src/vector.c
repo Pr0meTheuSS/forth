@@ -1,8 +1,11 @@
 #include "vector.h"
 #include <assert.h>
 
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 const size_t cDefaultVectorCapacity = 1024;
 
 typedef struct Vector {
@@ -19,7 +22,7 @@ Vector *create_vector() {
   ret->capacity = cDefaultVectorCapacity;
   ret->size = 0;
 
-  ret->nodes = (Node *)calloc(ret->capacity, sizeof(*ret->nodes));
+  ret->nodes = (Node *)calloc(ret->capacity, sizeof(ret->nodes[0]));
   if (!ret->nodes) {
     free(ret);
     return NULL;
@@ -29,6 +32,9 @@ Vector *create_vector() {
 }
 
 void destroy_vector(Vector *vec) {
+  for (size_t i = 0; i < vec->size; ++i) {
+    free(vec->nodes[i].data);
+  }
   free(vec->nodes);
   free(vec);
 }
@@ -37,12 +43,11 @@ bool vector_append(Vector *vec, Node node) {
   assert(vec);
 
   if (vec->size == vec->capacity) {
-    vec->nodes =
-        reallocarray(vec->nodes, vec->capacity * 2, sizeof(vec->nodes[0]));
+    vec->capacity *= 2;
+    vec->nodes = reallocarray(vec->nodes, vec->capacity, sizeof(vec->nodes[0]));
     if (!vec->nodes) {
       return false;
     }
-    vec->capacity *= 2;
   }
   if (!memcpy(&vec->nodes[vec->size], &node, sizeof(vec->nodes[0]))) {
     return false;
@@ -54,6 +59,7 @@ bool vector_append(Vector *vec, Node node) {
 bool vector_remove(Vector *vec, size_t index) {
   assert(vec);
   assert(index <= vec->size);
+  vec->size--;
   // TODO: not implemented yet
   return false;
 }
@@ -65,7 +71,10 @@ bool vector_get(const Vector *vec, size_t index, Node *out) {
   if (index >= vec->size) {
     return false;
   }
-  return memcpy(out, &vec->nodes[index], sizeof(*out));
+  out->data = vec->nodes[index].data;
+  out->size = vec->nodes[index].size;
+  return true;
+  // return memcpy(out, &, sizeof(*out));
 }
 
 size_t vector_size(const Vector *vec) {

@@ -17,9 +17,9 @@ bool assertPushStack() {
   Stack *stack = create_stack();
   int pushingValue = 1;
 
-  push(stack, pushingValue);
+  Ret retValue = push(stack, pushingValue);
 
-  bool ret = stack->topIndex == 0 && stack->data[0] == pushingValue;
+  bool ret = retValue.error == 0 && retValue.value == pushingValue;
   destroy_stack(stack);
   return ret;
 }

@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "test.h"
 #include "vector.h"
@@ -30,8 +31,9 @@ bool assertPushVector() {
   int pushingValue = 1;
 
   Node node;
-  node.data = &pushingValue;
   node.size = sizeof(pushingValue);
+  node.data = malloc(node.size);
+  memcpy(node.data, &pushingValue, node.size);
 
   bool ret = vector_append(vec, node);
 
@@ -46,10 +48,12 @@ bool assertAppendAndGetNodeFromVector() {
   Node node;
   size_t i = 0;
   for (; i < 2048; i++) {
-    node.data = &i;
     node.size = sizeof(i);
-    bool ret = vector_append(vec, node);
-    if (!ret) {
+    node.data = malloc(sizeof(i));
+    memcpy(node.data, &i, node.size);
+
+    bool ok = vector_append(vec, node);
+    if (!ok) {
       ret = false;
       goto cleanup;
     }
@@ -57,8 +61,8 @@ bool assertAppendAndGetNodeFromVector() {
 
   i = 0;
   for (; i < 2048; i++) {
-    bool ret = vector_get(vec, i, &node);
-    if (!ret || *(size_t *)node.data != i) {
+    bool ok = vector_get(vec, i, &node);
+    if (!ok || *(size_t *)node.data != i) {
       ret = false;
       goto cleanup;
     }

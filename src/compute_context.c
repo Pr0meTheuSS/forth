@@ -12,20 +12,20 @@ ComputeContext *create_compute_context() {
   if (!ret) {
     return NULL;
   }
-  ret->custom_commands_tree = create_avl_tree();
-  if (!ret->custom_commands_tree) {
-    return NULL;
-  }
 
   ret->branch_depth = 0;
   ret->skip_depth = 0;
-  ret->stack = create_stack();
   ret->current_command_index = 0;
   ret->do_loop_index = 0;
   ret->do_loop_limit = 0;
   ret->do_start_command_index = 0;
-  ret->compile_mode = false;
   ret->compile_mode = NO_COMPILE;
+
+  ret->custom_commands_tree = create_avl_tree();
+  if (!ret->custom_commands_tree) {
+    return NULL;
+  }
+  ret->stack = create_stack();
   ret->commands_vector = create_vector();
   return ret;
 }
@@ -34,6 +34,7 @@ void destroy_compute_context(ComputeContext *ctx) {
   if (!ctx) {
     return;
   }
+
   destroy_avl_tree(ctx->custom_commands_tree);
   destroy_vector(ctx->commands_vector);
   destroy_stack(ctx->stack);
@@ -49,32 +50,38 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
   assert(ctx);
   assert(program);
 
-  ctx->program = program;
-  for (; ctx->current_command_index < program->commandsAmount;) {
-    Command *current_command = &program->commands[ctx->current_command_index];
+  // ctx->program = program;
+  size_t commands_amount = vector_size(program->commands);
 
+  for (; ctx->current_command_index < commands_amount;) {
+    Node node;
+    bool ok = vector_get(program->commands, ctx->current_command_index, &node);
+    if (!ok) {
+      // terminate_compute_context();
+    }
+    Command *current_command = node.data;
     vm_execute_command(ctx, current_command);
   }
 }
+
 typedef struct CustomWordSubProgramNode {
-  Command command;
+  const char command_name[64];
   Program subProgram;
 } CustomWordSubProgramNode;
 
 int command_comparator(const Key *left, const Key *right) {
   CustomWordSubProgramNode *leftNode = (CustomWordSubProgramNode *)left->data;
   CustomWordSubProgramNode *rightNode = (CustomWordSubProgramNode *)right->data;
-  return strcmp(leftNode->command.command_name,
-                rightNode->command.command_name);
+  return strcmp(leftNode->command_name, rightNode->command_name);
 }
 
 void vm_execute_command(ComputeContext *ctx, Command *command) {
-
   if (ctx->compile_mode == COMPILE) {
     Node wordNode;
 
     wordNode.size = sizeof(Command);
-    wordNode.data = command;
+    wordNode.data = malloc(wordNode.size);
+    memcpy(wordNode.data, command, wordNode.size);
 
     vector_append(ctx->commands_vector, wordNode);
     ctx->current_command_index++;

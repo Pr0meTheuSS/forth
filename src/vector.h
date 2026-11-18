@@ -14,6 +14,6 @@ typedef struct Node {
 
 bool vector_append(Vector *vec, Node node);
 bool vector_remove(Vector *vec, size_t index);
-bool vector_get(const Vector *vec, size_t index, Node *out);
 
-size_t vector_size(const Vector* vec);
+bool vector_get(const Vector *vec, size_t index, Node *out);
+size_t vector_size(const Vector *vec);

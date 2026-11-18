@@ -6,9 +6,10 @@
 
 AvlTree *create_avl_tree() {
   AvlTree *new_tree = (AvlTree *)malloc(sizeof(AvlTree));
-  if (new_tree == NULL) {
-    return new_tree;
+  if (!new_tree) {
+    return NULL;
   }
+
   new_tree->left = NULL;
   new_tree->right = NULL;
   new_tree->key = NULL;
@@ -65,7 +66,7 @@ Key *create_copy_key(Key key) {
 
   copy_key->data = (void *)malloc(key.size);
   if (!copy_key->data) {
-    return copy_key;
+    return NULL;
   }
   copy_key->size = key.size;
 

@@ -76,14 +76,14 @@ bool insert_and_find_lot_values_avl_tree_test() {
     bool insert_res = avl_tree_insert(tree, key);
     if (!insert_res) {
       res = false;
-      printf("insert error");
+      printf("insert error\n");
       goto cleanup;
     }
 
     const Key *found = avl_tree_find(tree, key);
     if (!found) {
       res = false;
-      printf("find error");
+      printf("find error\n");
       goto cleanup;
     }
   }

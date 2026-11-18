@@ -7,8 +7,7 @@
 typedef struct Command Command;
 
 typedef struct Program {
-  Command *commands;
-  size_t commandsAmount;
+  Vector *commands;
 } Program;
 
 typedef enum CompileMode {
@@ -39,3 +38,16 @@ Ret vm_pop(ComputeContext *ctx);
 Ret vm_top(ComputeContext *ctx);
 void vm_execute_command(ComputeContext *ctx, Command *command);
 void vm_execute_program(ComputeContext *ctx, Program *program);
+
+typedef enum ComputeContextStatus {
+  OK,
+  TERMINATED,
+  UNKNOWN_COMMAND,
+  DATA_STACK_ACCCESS_ERROR,
+  DATA_STACK_OVERFLOW
+} ComputeContextStatus;
+
+typedef struct ComputeContextError {
+  char error_message[128];
+  ComputeContextStatus status;
+} ComputeContextError;
