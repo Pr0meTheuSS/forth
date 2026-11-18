@@ -3,12 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "stack.h"
-#include "test.h"
-
 #include "command.h"
 #include "compute_context.h"
-#include "vector.h"
+#include "structures/stack/stack.h"
+#include "structures/vector/vector.h"
+#include "test.h"
 
 Program *program_from_commands(const Command *commands, size_t commandsAmount) {
   Program *program = malloc(sizeof(Program));

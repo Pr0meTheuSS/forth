@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stack.h"
+#include "structures/stack/stack.h"
 
 typedef struct ComputeContext ComputeContext;
 

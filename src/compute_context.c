@@ -1,7 +1,7 @@
 #include "compute_context.h"
-#include "avl-tree.h"
 #include "command.h"
-#include "vector.h"
+#include "structures/avl_tree/avl-tree.h"
+#include "structures/vector/vector.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -54,7 +54,7 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
   size_t commands_amount = vector_size(program->commands);
 
   for (; ctx->current_command_index < commands_amount;) {
-    Node node;
+    Node node = {.data = NULL, .size = 0};
     bool ok = vector_get(program->commands, ctx->current_command_index, &node);
     if (!ok) {
       // terminate_compute_context();

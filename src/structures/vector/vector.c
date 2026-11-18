@@ -76,7 +76,6 @@ bool vector_get(const Vector *vec, size_t index, Node *out) {
   out->data = vec->nodes[index].data;
   out->size = vec->nodes[index].size;
   return true;
-  // return memcpy(out, &, sizeof(*out));
 }
 
 size_t vector_size(const Vector *vec) {

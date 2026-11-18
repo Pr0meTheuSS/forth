@@ -1,21 +1,35 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -g -pedantic -fsanitize=address,undefined
+
+# Пути поиска заголовков: src + все подкаталоги до 2 уровней вложенности.
+# После переезда файлов в src/structures/... инклуды #include "test.h"
+# продолжают работать без правки исходников.
+SRC_DIRS := src $(sort $(dir $(wildcard src/*/ src/*/*/)))
+INCLUDES := $(addprefix -I,$(SRC_DIRS))
+
+CFLAGS = -Wall -Wextra -Werror -g -pedantic $(INCLUDES) -fsanitize=address,undefined
 LDFLAGS = -fsanitize=address,undefined
+DEPFLAGS = -MMD -MP
 
 TARGET = forth
 
-# Исходники проекта (реализации, НЕ тесты)
-SRCS = src/main.c src/command.c src/compute_context.c src/stack.c src/vector.c src/avl-tree.c
-OBJS = $(SRCS:.c=.o)
+# Все реализации: рекурсивный поиск, исключаем тесты и test_main.c.
+# Порядок не важен, пути могут быть любой глубины.
+SRCS := $(shell find src -name '*.c' ! -name '*_test.c' ! -name 'test_main.c')
+OBJS := $(SRCS:.c=.o)
 
-# Все файлы *_test.c в src/ (не рекурсивно, только в этой папке)
-TEST_SRCS := $(wildcard src/*_test.c)
+# Тесты теперь в двух местах: корень src и src/structures/*/
+TEST_SRCS := $(wildcard src/*_test.c src/structures/*/*_test.c)
 TEST_OBJS := $(TEST_SRCS:.c=.o)
 TEST_BIN = tests
 
-# Имена бинарей для отдельных тестов: foo_test.c -> foo
-TEST_NAMES := $(TEST_SRCS:src/%.c=%)
-TEST_NAMES := $(TEST_NAMES:_test.c=)
+# Имя бинаря отдельного теста = имя файла без _test.c (из любого каталога):
+#   src/commands_test.c                      -> commands
+#   src/structures/avl_tree/avl-tree_test.c  -> avl-tree
+TEST_NAMES := $(basename $(notdir $(TEST_SRCS)))
+
+# Реализации без main.c — для линковки тестов
+SRCS_FOR_TESTS := $(filter-out src/main.c,$(SRCS))
+OBJS_FOR_TESTS := $(SRCS_FOR_TESTS:.c=.o)
 
 all: $(TARGET)
 
@@ -23,66 +37,35 @@ $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
 
-# --- Сборка всех тестов в один бинарь ---
-# Линкуем: все тестовые .o, test_main.c, и все реализации (без main.c, чтобы не было двух main)
-# Исключаем main.c из реализаций специально для тестов
-SRCS_FOR_TESTS := $(filter-out src/main.c,$(SRCS))
-OBJS_FOR_TESTS := $(SRCS_FOR_TESTS:.c=.o)
-
-help: # показать доступные цели
-	@echo "Доступные цели:"
-	@echo "  make            — собрать forth (debug, с санитайзерами)"
-	@echo "  make tests      — собрать все тесты одним бинарем"
-	@echo "  make check      — собрать и запустить тесты"
-	@echo "  make test-<имя> — собрать и запустить отдельный тест (например: make test-forth_sum_test)"
-	@echo "  make release    — релизная сборка с оптимизацией"
-	@echo "  make forth_small— сборка с минимальным размером бинаря"
-	@echo "  make strip      — вырезать символы из собранного бинаря"
-	@echo "  make size       — показать размер секций бинаря"
-	@echo "  make coverage   — тесты + отчёт lcov (coverage_report/)"
-	@echo "  make docs       — документация doxygen (docs/html/)"
-	@echo "  make clean      — удалить всё сгенерированное"
-
-	.PHONY: help
-
+# Автозависимости от заголовков (в т.ч. из подкаталогов)
+-include $(SRCS:.c=.d) $(TEST_SRCS:.c=.d)
 
 # --- Релизная сборка: оптимизация и уменьшение размера ---
-# -Os        — оптимизация под размер
-# -flto      — link-time optimization (доп. сжатие и инлайнинг между .c)
-# -ffunction-sections -fdata-sections + --gc-sections — выкинуть неиспользуемый код
-# -s         — strip символьной информации на этапе линковки
-# -D_FORTIFY_SOURCE — с -O2+: проверки рантайма почти без оверхеда
-# -fno-asan  — санитайзеры в релиз не попадают (они утяжеляют бинарь в разы)
-REL_CFLAGS  = -Wall -Wextra -Werror -pedantic -O2 -flto \
-              -ffunction-sections -fdata-sections \
-              -fno-plt -fomit-frame-pointer \
-              -D_FORTIFY_SOURCE=2 -DNDEBUG
+REL_CFLAGS  = -Wall -Wextra -Werror -pedantic $(INCLUDES) -O2 -flto \
+	          -ffunction-sections -fdata-sections \
+	          -fno-plt -fomit-frame-pointer \
+	          -D_FORTIFY_SOURCE=2 -DNDEBUG
 REL_LDFLAGS = -flto -s -Wl,--gc-sections -Wl,-O1 -Wl,--as-needed
 
-# Тот же релизный профиль, но с максимальным сжатием (-Oz вместо -O2)
-# и aggressive-инлайнингом; подходит, когда размер важнее скорости
 REL_SMALL_CFLAGS  = $(subst -O2,-Oz,$(REL_CFLAGS)) -fno-unroll-loops
 REL_SMALL_LDFLAGS = $(REL_LDFLAGS)
 
-REL_OBJS = $(SRCS:.c=.rel.o)
+REL_OBJS := $(SRCS:.c=.rel.o)
 
 %.rel.o: %.c
 	$(CC) $(REL_CFLAGS) -c $< -o $@
 
-# Релизный forth
+release: clean-objs $(TARGET)
 release: CFLAGS = $(REL_CFLAGS)
-release: clean-objs
-release: $(TARGET)
+release: LDFLAGS = $(REL_LDFLAGS)
 
-# Минимальный по размеру бинарь (forth_small)
 forth_small: $(REL_OBJS)
 	$(CC) $(REL_SMALL_CFLAGS) -o $@ $(REL_OBJS) $(REL_SMALL_LDFLAGS)
 
 strip: $(TARGET)
-	strip --strip-all --remove-section=.comment --remove-section=.note \
-        $(TARGET)
+	strip --strip-all --remove-section=.comment --remove-section=.note $(TARGET)
 
 size: $(TARGET)
 	@echo "=== Размер секций ==="
@@ -90,64 +73,79 @@ size: $(TARGET)
 	@echo "=== Итог ==="
 	@ls -lh $(TARGET) | awk '{print "файл: " $$5}'
 
-# Проверить, что release-бинарь жив: без ASan/UBSan, но без крашей
 check-release: release
 	./$(TARGET)
 
+# --- Тесты одним бинарем ---
 tests: $(TEST_OBJS) src/test_main.c $(OBJS_FOR_TESTS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) src/test_main.c $(OBJS_FOR_TESTS) -o $@ $(LDFLAGS)
 
 check: tests
 	./tests
 
-# --- Отдельные тесты (по одному) ---
-# Каждый отдельный тест: один *_test.o + test_main.c + все реализации (без main.c)
-$(TEST_NAMES): %: src/%_test.c src/test_main.c $(OBJS_FOR_TESTS)
-	$(CC) $(CFLAGS) src/$*_test.o src/test_main.c $(OBJS_FOR_TESTS) -o $@ $(LDFLAGS)
+# --- Отдельные тесты: по одному бинарю на каждый *_test.c ---
+# Путь файла неизвестен заранее, поэтому генерируем правила шаблоном.
+define TEST_RULE
+ $(1): $(2) src/test_main.c $(OBJS_FOR_TESTS)
+	$$(CC) $$(CFLAGS) $(2) src/test_main.c $$(OBJS_FOR_TESTS) -o $$@ $$(LDFLAGS)
+endef
+
+ $(foreach src, $(TEST_SRCS),\
+	$(eval $(call TEST_RULE,$(basename $(notdir $(src))),$(src:.c=.o))))
 
 test-%: %
 	./$*
 
-.PHONY: all clean check $(TEST_NAMES)
-
-# Флаги для покрытия: без санитайзеров, зато с отладочной информацией и профайлингом
-COV_CFLAGS = -Wall -Wextra -g -O0 -fprofile-arcs -ftest-coverage
+# --- Покрытие ---
+COV_CFLAGS = -Wall -Wextra -g -O0 $(INCLUDES) -fprofile-arcs -ftest-coverage
 COV_LDFLAGS = -lgcov
-
-# Бинарь для покрытия (отдельный от обычного tests)
 COV_BIN = tests_cov
 
-cov-objs := $(TEST_SRCS:.c=.cov.o) $(SRCS_FOR_TESTS:.c=.cov.o)
+cov-objs := $(TEST_OBJS:.o=.cov.o) $(OBJS_FOR_TESTS:.o=.cov.o)
 
-# Правило компиляции под покрытие
 %.cov.o: %.c
 	$(CC) $(COV_CFLAGS) -c $< -o $@
 
-# Сборка бинаря с покрытием
 $(COV_BIN): $(cov-objs) src/test_main.c
 	$(CC) $(COV_CFLAGS) $(cov-objs) src/test_main.c $(COV_LDFLAGS) -o $@
 
-# Запуск тестов и генерация отчёта
 coverage: $(COV_BIN)
 	./$(COV_BIN)
-	lcov --capture --directory . --output-file coverage.info
+	lcov --capture --directory src --output-file coverage.info
 	genhtml coverage.info --output-directory coverage_report
 
-.PHONY: all clean check $(TEST_NAMES) coverage
-
+# --- Документация ---
 DOXYGEN = doxygen
 DOXYFILE = Doxyfile
 
+docs:
+	$(DOXYGEN) $(DOXYFILE)
+
+# --- Справка ---
+help:
+	@echo "Доступные цели:"
+	@echo "  make            — собрать forth (debug, с санитайзерами)"
+	@echo "  make tests      — собрать все тесты одним бинарем"
+	@echo "  make check      — собрать и запустить тесты"
+	@echo "  make test-<имя> — отдельный тест; имена: $(TEST_NAMES)"
+	@echo "                    (например: make test-avl-tree, make test-stack)"
+	@echo "  make release    — релизная сборка с оптимизацией"
+	@echo "  make forth_small— сборка с минимальным размером бинаря"
+	@echo "  make strip      — вырезать символы из собранного бинаря"
+	@echo "  make size       — показать размер секций бинаря"
+	@echo "  make coverage   — тесты + отчёт lcov (coverage_report/)"
+	@echo "  make docs       — документация doxygen (docs/html/)"
+	@echo "  make cdb        — перегенерировать compile_commands.json (bear)"
+	@echo "  make clean      — удалить всё сгенерированное"
+
 .PHONY: all clean check check-release release forth_small strip size \
-	$(TEST_NAMES) coverage docs
+	$(TEST_NAMES) coverage docs cdb help
 
 clean-objs:
 	rm -f $(OBJS)
 
 clean:
-	rm -rf $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) \
-          $(REL_OBJS) *.o src/*.o src/*.rel.o \
-          coverage_report coverage.info src/*.gcda src/*.gcno \
-          docs/html
-docs:
-	$(DOXYGEN) $(DOXYFILE)
+	rm -f $(TARGET) $(TEST_BIN) $(COV_BIN) forth_small $(TEST_NAMES)
+	rm -rf coverage_report coverage.info docs/html
+	find src \( -name '*.o' -o -name '*.d' \
+	            -o -name '*.gcda' -o -name '*.gcno' \) -delete

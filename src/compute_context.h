@@ -1,7 +1,7 @@
 #pragma once
-#include "avl-tree.h"
-#include "stack.h"
-#include "vector.h"
+#include "structures/avl_tree/avl-tree.h"
+#include "structures/stack/stack.h"
+#include "structures/vector/vector.h"
 #include <stddef.h>
 
 typedef struct Command Command;
