@@ -58,7 +58,9 @@ bool vector_append(Vector *vec, Node node) {
 
 bool vector_remove(Vector *vec, size_t index) {
   assert(vec);
-  assert(index <= vec->size);
+  if (index >= vec->size) {
+    return false;
+  }
   vec->size--;
   // TODO: not implemented yet
   return false;

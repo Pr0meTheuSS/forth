@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g -pedantic -fsanitize=address,undefined
+CFLAGS = -Wall -Wextra -Werror -g -pedantic -fsanitize=address,undefined
 LDFLAGS = -fsanitize=address,undefined
 
 TARGET = forth
@@ -30,6 +30,69 @@ $(TARGET): $(OBJS)
 # Исключаем main.c из реализаций специально для тестов
 SRCS_FOR_TESTS := $(filter-out src/main.c,$(SRCS))
 OBJS_FOR_TESTS := $(SRCS_FOR_TESTS:.c=.o)
+
+help: # показать доступные цели
+	@echo "Доступные цели:"
+	@echo "  make            — собрать forth (debug, с санитайзерами)"
+	@echo "  make tests      — собрать все тесты одним бинарем"
+	@echo "  make check      — собрать и запустить тесты"
+	@echo "  make test-<имя> — собрать и запустить отдельный тест (например: make test-forth_sum_test)"
+	@echo "  make release    — релизная сборка с оптимизацией"
+	@echo "  make forth_small— сборка с минимальным размером бинаря"
+	@echo "  make strip      — вырезать символы из собранного бинаря"
+	@echo "  make size       — показать размер секций бинаря"
+	@echo "  make coverage   — тесты + отчёт lcov (coverage_report/)"
+	@echo "  make docs       — документация doxygen (docs/html/)"
+	@echo "  make clean      — удалить всё сгенерированное"
+
+	.PHONY: help
+
+
+# --- Релизная сборка: оптимизация и уменьшение размера ---
+# -Os        — оптимизация под размер
+# -flto      — link-time optimization (доп. сжатие и инлайнинг между .c)
+# -ffunction-sections -fdata-sections + --gc-sections — выкинуть неиспользуемый код
+# -s         — strip символьной информации на этапе линковки
+# -D_FORTIFY_SOURCE — с -O2+: проверки рантайма почти без оверхеда
+# -fno-asan  — санитайзеры в релиз не попадают (они утяжеляют бинарь в разы)
+REL_CFLAGS  = -Wall -Wextra -Werror -pedantic -O2 -flto \
+              -ffunction-sections -fdata-sections \
+              -fno-plt -fomit-frame-pointer \
+              -D_FORTIFY_SOURCE=2 -DNDEBUG
+REL_LDFLAGS = -flto -s -Wl,--gc-sections -Wl,-O1 -Wl,--as-needed
+
+# Тот же релизный профиль, но с максимальным сжатием (-Oz вместо -O2)
+# и aggressive-инлайнингом; подходит, когда размер важнее скорости
+REL_SMALL_CFLAGS  = $(subst -O2,-Oz,$(REL_CFLAGS)) -fno-unroll-loops
+REL_SMALL_LDFLAGS = $(REL_LDFLAGS)
+
+REL_OBJS = $(SRCS:.c=.rel.o)
+
+%.rel.o: %.c
+	$(CC) $(REL_CFLAGS) -c $< -o $@
+
+# Релизный forth
+release: CFLAGS = $(REL_CFLAGS)
+release: clean-objs
+release: $(TARGET)
+
+# Минимальный по размеру бинарь (forth_small)
+forth_small: $(REL_OBJS)
+	$(CC) $(REL_SMALL_CFLAGS) -o $@ $(REL_OBJS) $(REL_SMALL_LDFLAGS)
+
+strip: $(TARGET)
+	strip --strip-all --remove-section=.comment --remove-section=.note \
+        $(TARGET)
+
+size: $(TARGET)
+	@echo "=== Размер секций ==="
+	@size -A $(TARGET)
+	@echo "=== Итог ==="
+	@ls -lh $(TARGET) | awk '{print "файл: " $$5}'
+
+# Проверить, что release-бинарь жив: без ASan/UBSan, но без крашей
+check-release: release
+	./$(TARGET)
 
 tests: $(TEST_OBJS) src/test_main.c $(OBJS_FOR_TESTS)
 	$(CC) $(CFLAGS) $(TEST_OBJS) src/test_main.c $(OBJS_FOR_TESTS) -o $@ $(LDFLAGS)
@@ -75,12 +138,16 @@ coverage: $(COV_BIN)
 DOXYGEN = doxygen
 DOXYFILE = Doxyfile
 
-.PHONY: docs clean
+.PHONY: all clean check check-release release forth_small strip size \
+	$(TEST_NAMES) coverage docs
 
-docs:
-	$(DOXYGEN) $(DOXYFILE)
+clean-objs:
+	rm -f $(OBJS)
 
 clean:
-	rm -rf $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) src/*.o \
-	      coverage_report coverage.info src/*.gcda src/*.gcno \
-	      docs/html
+	rm -rf $(OBJS) $(TEST_OBJS) $(TARGET) $(TEST_BIN) $(TEST_NAMES) \
+          $(REL_OBJS) *.o src/*.o src/*.rel.o \
+          coverage_report coverage.info src/*.gcda src/*.gcno \
+          docs/html
+docs:
+	$(DOXYGEN) $(DOXYFILE)
