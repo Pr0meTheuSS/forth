@@ -6,7 +6,6 @@
 typedef struct Key {
   void *data;
   size_t size;
-  int (*comp)(const struct Key *left, const struct Key *right);
 } Key;
 
 typedef struct AvlTree {
@@ -14,10 +13,11 @@ typedef struct AvlTree {
   struct AvlTree *right;
 
   const Key *key;
+  int (*comp)(const struct Key *left, const struct Key *right);
   int height;
 } AvlTree;
 
-AvlTree *create_avl_tree();
+AvlTree *create_avl_tree(int (*key_comp)(const Key *, const Key *));
 void destroy_avl_tree(AvlTree *self);
 
 // void small_right_rotation(AvlTree* self);

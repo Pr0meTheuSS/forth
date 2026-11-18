@@ -4,7 +4,7 @@
 
 #include "avl-tree.h"
 
-AvlTree *create_avl_tree() {
+AvlTree *create_avl_tree(int (*key_comp)(const Key *, const Key *)) {
   AvlTree *new_tree = (AvlTree *)malloc(sizeof(AvlTree));
   if (!new_tree) {
     return NULL;
@@ -14,7 +14,7 @@ AvlTree *create_avl_tree() {
   new_tree->right = NULL;
   new_tree->key = NULL;
   new_tree->height = 1;
-
+  new_tree->comp = key_comp;
   return new_tree;
 }
 
@@ -41,7 +41,7 @@ const Key *avl_tree_find(const AvlTree *self, const Key key) {
   const Key *root_key = self->key;
   const Key *search_key = &key;
 
-  int cmp_res = self->key->comp(search_key, root_key);
+  int cmp_res = self->comp(search_key, root_key);
   if (cmp_res == 0) {
     return root_key;
   }
@@ -71,7 +71,6 @@ Key *create_copy_key(Key key) {
   copy_key->size = key.size;
 
   memcpy(copy_key->data, key.data, copy_key->size);
-  copy_key->comp = key.comp;
 
   return copy_key;
 }
@@ -89,16 +88,16 @@ bool avl_tree_insert(AvlTree *self, Key key) {
     return (self->key);
   }
 
-  int cmp_res = key.comp(&key, self->key);
+  int cmp_res = self->comp(&key, self->key);
   if (cmp_res == 0) {
     return false;
   }
 
   if (cmp_res < 0) {
-    self->left = self->left ? self->left : create_avl_tree();
+    self->left = self->left ? self->left : create_avl_tree(self->comp);
     return avl_tree_insert(self->left, key);
   } else {
-    self->right = self->right ? self->right : create_avl_tree();
+    self->right = self->right ? self->right : create_avl_tree(self->comp);
     return avl_tree_insert(self->right, key);
   }
 }

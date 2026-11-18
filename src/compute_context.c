@@ -7,6 +7,17 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef struct CustomWordSubProgramNode {
+  const char command_name[64];
+  Program subProgram;
+} CustomWordSubProgramNode;
+
+int command_comparator(const Key *left, const Key *right) {
+  CustomWordSubProgramNode *leftNode = (CustomWordSubProgramNode *)left->data;
+  CustomWordSubProgramNode *rightNode = (CustomWordSubProgramNode *)right->data;
+  return strcmp(leftNode->command_name, rightNode->command_name);
+}
+
 ComputeContext *create_compute_context() {
   ComputeContext *ret = (ComputeContext *)malloc(sizeof(ComputeContext));
   if (!ret) {
@@ -21,7 +32,7 @@ ComputeContext *create_compute_context() {
   ret->do_start_command_index = 0;
   ret->compile_mode = NO_COMPILE;
 
-  ret->custom_commands_tree = create_avl_tree();
+  ret->custom_commands_tree = create_avl_tree(command_comparator);
   if (!ret->custom_commands_tree) {
     return NULL;
   }
@@ -64,17 +75,6 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
   }
 }
 
-typedef struct CustomWordSubProgramNode {
-  const char command_name[64];
-  Program subProgram;
-} CustomWordSubProgramNode;
-
-int command_comparator(const Key *left, const Key *right) {
-  CustomWordSubProgramNode *leftNode = (CustomWordSubProgramNode *)left->data;
-  CustomWordSubProgramNode *rightNode = (CustomWordSubProgramNode *)right->data;
-  return strcmp(leftNode->command_name, rightNode->command_name);
-}
-
 void vm_execute_command(ComputeContext *ctx, Command *command) {
   if (ctx->compile_mode == COMPILE) {
     Node wordNode;
@@ -92,7 +92,6 @@ void vm_execute_command(ComputeContext *ctx, Command *command) {
     Key customWord;
     customWord.size = sizeof(*command);
     customWord.data = command;
-    customWord.comp = command_comparator;
 
     bool ret = avl_tree_insert(tree, customWord);
     if (!ret) {

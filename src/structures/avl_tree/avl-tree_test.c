@@ -3,8 +3,14 @@
 #include "avl-tree.h"
 #include "test.h"
 
+int intless(const Key *left, const Key *right) {
+  int *l = (int *)left->data;
+  int *r = (int *)right->data;
+  return (*l - *r);
+}
+
 bool init_avl_tree_test() {
-  AvlTree *tree = create_avl_tree();
+  AvlTree *tree = create_avl_tree(intless);
 
   bool res = tree;
   res = res && (!tree->left);
@@ -16,21 +22,14 @@ bool init_avl_tree_test() {
   return res;
 }
 
-int intless(const Key *left, const Key *right) {
-  int *l = (int *)left->data;
-  int *r = (int *)right->data;
-  return (*l - *r);
-}
-
 bool insert_and_find_avl_tree_test() {
-  AvlTree *tree = create_avl_tree();
+  AvlTree *tree = create_avl_tree(intless);
 
   Key key;
 
   int key_value = 1;
   key.data = &key_value;
   key.size = sizeof(int);
-  key.comp = intless;
 
   bool insert_res = avl_tree_insert(tree, key);
   if (!insert_res) {
@@ -45,14 +44,13 @@ bool insert_and_find_avl_tree_test() {
 }
 
 bool false_find_avl_tree_test() {
-  AvlTree *tree = create_avl_tree();
+  AvlTree *tree = create_avl_tree(intless);
 
   Key key;
 
   int key_value = 1;
   key.data = &key_value;
   key.size = sizeof(int);
-  key.comp = intless;
 
   const Key *found = avl_tree_find(tree, key);
 
@@ -62,7 +60,7 @@ bool false_find_avl_tree_test() {
 }
 
 bool insert_and_find_lot_values_avl_tree_test() {
-  AvlTree *tree = create_avl_tree();
+  AvlTree *tree = create_avl_tree(intless);
   bool res = true;
 
   for (int i = 0; i < 100; ++i) {
@@ -71,7 +69,6 @@ bool insert_and_find_lot_values_avl_tree_test() {
 
     key.data = &key_value;
     key.size = sizeof(key_value);
-    key.comp = intless;
 
     bool insert_res = avl_tree_insert(tree, key);
     if (!insert_res) {
