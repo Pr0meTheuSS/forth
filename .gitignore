@@ -67,3 +67,4 @@ tests
 tests_cov
 *.gcda
 *.gcno
+*.log

@@ -101,8 +101,7 @@ bool iterator_avl_tree_test() {
     treeAmount++;
     iterator = avl_tree_get_next_iterator(tree, iterator);
   }
-  printf("treeAmount = %d, valuesAmount = %d\n", treeAmount, valuesAmount);
-  res = treeAmount == valuesAmount;
+  res = res && treeAmount == valuesAmount;
 cleanup:
   destroy_avl_tree(tree);
 

@@ -6,7 +6,7 @@ CC = gcc
 SRC_DIRS := src $(sort $(dir $(wildcard src/*/ src/*/*/)))
 INCLUDES := $(addprefix -I,$(SRC_DIRS))
 
-CFLAGS = -Wall -Wextra -Werror -g -pedantic $(INCLUDES) -fsanitize=address,undefined
+CFLAGS = -Wall -Wextra -Werror -g -pedantic $(INCLUDES) -fsanitize=address,undefined -DFORTH_LOG_COMPILE_LEVEL=LOG_LVL_TRACE
 LDFLAGS = -fsanitize=address,undefined
 DEPFLAGS = -MMD -MP
 
@@ -46,7 +46,7 @@ $(TARGET): $(OBJS)
 REL_CFLAGS  = -Wall -Wextra -Werror -pedantic $(INCLUDES) -O2 -flto \
 	          -ffunction-sections -fdata-sections \
 	          -fno-plt -fomit-frame-pointer \
-	          -D_FORTIFY_SOURCE=2 -DNDEBUG
+	          -D_FORTIFY_SOURCE=2 -DNDEBUG -DFORTH_LOG_COMPILE_LEVEL=LOG_LVL_OFF
 REL_LDFLAGS = -flto -s -Wl,--gc-sections -Wl,-O1 -Wl,--as-needed
 
 REL_SMALL_CFLAGS  = $(subst -O2,-Oz,$(REL_CFLAGS)) -fno-unroll-loops
