@@ -118,7 +118,7 @@ const AvlTree *avl_tree_get_next_iterator(const AvlTree *tree,
     parent = parent->parent;
   }
 
-  return parent; // NULL, если это был последний элемент
+  return parent;
 }
 
 // bool avl_tree_remove(AvlTree *self, Key key) {
