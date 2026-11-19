@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compute_context.h"
 #include "structures/stack/stack.h"
 
 typedef struct ComputeContext ComputeContext;
@@ -21,6 +22,7 @@ typedef enum CommandType {
   COMMAND_DO,
   COMMAND_LOOP,
   COMMAND_EMIT,
+  COMMAND_REGISTER_CUSTOM_WORD,
   COMMAND_COMPILE,
   COMMAND_END_COMPILE,
   UNKNOWN
@@ -41,6 +43,15 @@ typedef struct Command {
   const char command_name[64];
 } Command;
 
+typedef struct Program Program;
+
+typedef struct CustomWordSubProgramNode {
+  char command_name[64];
+  Program *subProgram;
+} CustomWordSubProgramNode;
+
+int command_comparator(const void *left, const void *right);
+
 void execute_int(Command *self, ComputeContext *ctx);
 void execute_sum(Command *self, ComputeContext *ctx);
 void execute_sub(Command *self, ComputeContext *ctx);
@@ -48,10 +59,16 @@ void execute_mult(Command *self, ComputeContext *ctx);
 void execute_div(Command *self, ComputeContext *ctx);
 void execute_drop(Command *self, ComputeContext *ctx);
 void execute_dup(Command *self, ComputeContext *ctx);
+
 void execute_if(Command *self, ComputeContext *ctx);
 void execute_else(Command *self, ComputeContext *ctx);
 void execute_then(Command *self, ComputeContext *ctx);
+
 void execute_do(Command *self, ComputeContext *ctx);
 void execute_loop(Command *self, ComputeContext *ctx);
+
 void execute_compile(Command *self, ComputeContext *ctx);
 void execute_end_compile(Command *self, ComputeContext *ctx);
+void execute_register_custom_word(Command *self, ComputeContext *ctx);
+
+void execute_custom_command(Command *self, ComputeContext *ctx);

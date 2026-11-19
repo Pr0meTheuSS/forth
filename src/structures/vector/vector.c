@@ -8,12 +8,6 @@
 
 const size_t cDefaultVectorCapacity = 1024;
 
-typedef struct Vector {
-  Node *nodes;
-  size_t size;
-  size_t capacity;
-} Vector;
-
 Vector *create_vector() {
   Vector *ret = (Vector *)malloc(sizeof(Vector));
   if (!ret) {
@@ -39,8 +33,13 @@ void destroy_vector(Vector *vec) {
   free(vec);
 }
 
-bool vector_append(Vector *vec, Node node) {
+bool vector_append(Vector *vec, const void *data, size_t size) {
   assert(vec);
+  Node node;
+
+  node.size = size;
+  node.data = malloc(node.size);
+  memcpy(node.data, data, node.size);
 
   if (vec->size == vec->capacity) {
     vec->capacity *= 2;
@@ -66,16 +65,15 @@ bool vector_remove(Vector *vec, size_t index) {
   return false;
 }
 
-bool vector_get(const Vector *vec, size_t index, Node *out) {
+bool vector_get(const Vector *vec, size_t index, void *out, size_t size) {
   assert(vec);
   assert(out);
 
   if (index >= vec->size) {
     return false;
   }
-  out->data = vec->nodes[index].data;
-  out->size = vec->nodes[index].size;
-  return true;
+  Node node = vec->nodes[index];
+  return memcpy(out, node.data, size);
 }
 
 size_t vector_size(const Vector *vec) {

@@ -14,11 +14,7 @@ Program *program_from_commands(const Command *commands, size_t commandsAmount) {
   program->commands = create_vector();
 
   for (size_t i = 0; i < commandsAmount; ++i) {
-    Node node;
-    node.size = sizeof(commands[0]);
-    node.data = malloc(node.size);
-    memcpy(node.data, &commands[i], node.size);
-    vector_append(program->commands, node);
+    vector_append(program->commands, &commands[i], sizeof(commands[i]));
   }
   return program;
 }
@@ -33,12 +29,11 @@ static bool run_program_stepwise(ComputeContext *compute_context,
                                  Program *program,
                                  const int expectedStackTopForCommandIndex[]) {
   for (size_t i = 0; i < vector_size(program->commands); ++i) {
-    Node node;
-    if (!vector_get(program->commands, i, &node)) {
+    Command command;
+    if (!vector_get(program->commands, i, &command, sizeof(command))) {
       return false;
     }
-    Command *command = (Command *)node.data;
-    vm_execute_command(compute_context, command);
+    vm_execute_command(compute_context, &command);
     Ret top = vm_top(compute_context);
     if (top.error != 0 || expectedStackTopForCommandIndex[i] != top.value) {
       printf("Expected top [%d], has [%d]\n",
@@ -335,7 +330,9 @@ bool forth_compile_custom_word() {
       {.type = COMMAND_COMPILE,
        .command_name = ":\0",
        .execute = execute_compile},
-      {.type = UNKNOWN, .command_name = "square\0"},
+      {.type = COMMAND_REGISTER_CUSTOM_WORD,
+       .command_name = "square\0",
+       .execute = execute_register_custom_word},
       {.type = COMMAND_DUP, .command_name = "DUP\0", .execute = execute_dup},
       {.type = COMMAND_MULT, .command_name = "*\0", .execute = execute_mult},
       {.type = COMMAND_END_COMPILE,
@@ -366,7 +363,9 @@ bool forth_compile_custom_word_body_test() {
       {.type = COMMAND_COMPILE,
        .command_name = ":\0",
        .execute = execute_compile},
-      {.type = UNKNOWN, .command_name = "square\0"},
+      {.type = COMMAND_REGISTER_CUSTOM_WORD,
+       .command_name = "square\0",
+       .execute = execute_register_custom_word},
       {.type = COMMAND_DUP, .command_name = "DUP\0", .execute = execute_dup},
       {.type = COMMAND_MULT, .command_name = "*\0", .execute = execute_mult},
       {.type = COMMAND_END_COMPILE,
@@ -387,15 +386,14 @@ bool forth_compile_custom_word_body_test() {
   Vector *commandsVector = compute_context->commands_vector;
   size_t found = 0;
   for (size_t i = 0; i < vector_size(commandsVector); ++i) {
-    Node node;
-    if (!vector_get(commandsVector, i, &node)) {
+    Command command;
+    if (!vector_get(commandsVector, i, &command, sizeof(command))) {
       printf("Fail to access vector[%ld]\n", i);
       ret = false;
       goto cleanup;
     }
-    Command *com = (Command *)node.data;
     for (size_t j = 0; j < expectedBodyAmount; ++j) {
-      if (strcmp(com->command_name, expectedBodyNames[j]) == 0) {
+      if (strcmp(command.command_name, expectedBodyNames[j]) == 0) {
         ++found;
       }
     }
@@ -403,6 +401,103 @@ bool forth_compile_custom_word_body_test() {
   if (found != expectedBodyAmount) {
     ret = false;
   }
+cleanup:
+  destroy_program(program);
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
+bool forth_compile_custom_word_execution() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  : square DUP * ;
+  5 square
+  */
+  Command commands[] = {
+      {.type = COMMAND_COMPILE,
+       .command_name = ":\0",
+       .execute = execute_compile},
+      {.type = COMMAND_REGISTER_CUSTOM_WORD,
+       .command_name = "square\0",
+       .execute = execute_register_custom_word},
+      {.type = COMMAND_DUP, .command_name = "DUP\0", .execute = execute_dup},
+      {.type = COMMAND_MULT, .command_name = "*\0", .execute = execute_mult},
+      {.type = COMMAND_END_COMPILE,
+       .command_name = ";\0",
+       .execute = execute_end_compile},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 5},
+       .execute = execute_int},
+      {.type = UNKNOWN,
+       .command_name = "square\0",
+       .execute = execute_custom_command},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+
+  Program *program = program_from_commands(commands, commandsAmount);
+
+  bool ret = true;
+  vm_execute_program(compute_context, program);
+
+  Ret top = vm_top(compute_context);
+  if (top.error != 0 || top.value != 5 * 5) {
+    printf("top.error: [%d], top.value: [%d]\n", top.error, top.value);
+    ret = false;
+    goto cleanup;
+  }
+
+cleanup:
+  destroy_program(program);
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
+bool forth_compile_custom_word_execution_twice() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  : square DUP * ;
+  2 square square
+  */
+  Command commands[] = {
+      {.type = COMMAND_COMPILE,
+       .command_name = ":\0",
+       .execute = execute_compile},
+      {.type = COMMAND_REGISTER_CUSTOM_WORD,
+       .command_name = "square\0",
+       .execute = execute_register_custom_word},
+      {.type = COMMAND_DUP, .command_name = "DUP\0", .execute = execute_dup},
+      {.type = COMMAND_MULT, .command_name = "*\0", .execute = execute_mult},
+      {.type = COMMAND_END_COMPILE,
+       .command_name = ";\0",
+       .execute = execute_end_compile},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 2},
+       .execute = execute_int},
+      {.type = UNKNOWN,
+       .command_name = "square\0",
+       .execute = execute_custom_command},
+      {.type = UNKNOWN,
+       .command_name = "square\0",
+       .execute = execute_custom_command},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+
+  Program *program = program_from_commands(commands, commandsAmount);
+
+  bool ret = true;
+  vm_execute_program(compute_context, program);
+
+  Ret top = vm_top(compute_context);
+  if (top.error != 0 || top.value != 16) {
+    printf("top.error: [%d], top.value: [%d]\n", top.error, top.value);
+    ret = false;
+    goto cleanup;
+  }
+
 cleanup:
   destroy_program(program);
   destroy_compute_context(compute_context);
@@ -424,7 +519,11 @@ static Test tests[] = {
     {.name = "forth_do_loop_simple_test", .test = forth_do_loop_simple_test},
     {.name = "forth_compile_custom_word", .test = forth_compile_custom_word},
     {.name = "forth_compile_custom_word_body_test",
-     .test = forth_compile_custom_word_body_test}};
+     .test = forth_compile_custom_word_body_test},
+    {.name = "forth_compile_custom_word_execution",
+     .test = forth_compile_custom_word_execution},
+    {.name = "forth_compile_custom_word_execution_twice",
+     .test = forth_compile_custom_word_execution_twice}};
 
 bool forth_commands_run_all_tests(void) {
   for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {

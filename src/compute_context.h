@@ -31,6 +31,7 @@ typedef struct ComputeContext {
   CompileMode compile_mode;
   Vector *commands_vector;
   Program *program;
+  char current_compiling_command_name[64];
 } ComputeContext;
 
 Ret vm_push(ComputeContext *ctx, int value);
