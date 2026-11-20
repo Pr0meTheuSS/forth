@@ -9,7 +9,7 @@
 #include <time.h>
 
 const char programTargetMessage[] = "Forth programms interpreter.";
-const char version[] = "v0.1.0";
+const char version[] = "v0.2.0";
 const char author[] = " by Y.Olimpiev";
 
 int main(void) {
