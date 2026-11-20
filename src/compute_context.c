@@ -93,6 +93,13 @@ void handle_compile(ComputeContext *ctx, Command *command) {
 }
 
 void vm_execute_command(ComputeContext *ctx, Command *command) {
+  Vector *commands = ctx->program->commands;
+  size_t program_size = vector_size(commands);
+  if (ctx->current_command_index == program_size) {
+    // TODO: check ret value
+    vector_append(commands, command, sizeof(*command));
+  }
+
   if (ctx->compile_mode == COMPILE) {
     handle_compile(ctx, command);
     return;
@@ -103,6 +110,13 @@ void vm_execute_command(ComputeContext *ctx, Command *command) {
   }
   command->execute(command, ctx);
   ctx->current_command_index++;
+  if (command->type == COMMAND_LOOP) {
+    while (ctx->do_loop_index != 0) {
+      vector_get(commands, ctx->current_command_index, command,
+                 sizeof(*command));
+      vm_execute_command(ctx, command);
+    }
+  }
 }
 
 Ret vm_push(ComputeContext *ctx, int value) {
