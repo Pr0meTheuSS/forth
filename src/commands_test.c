@@ -181,6 +181,35 @@ bool forth_drop_test() {
   return ret;
 }
 
+bool forth_swap_test() {
+  ComputeContext *compute_context = create_compute_context();
+
+  /*
+  1 2 SWAP DROP
+  */
+  Command commands[] = {
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 1},
+       .execute = execute_int},
+      {.type = COMMAND_INT,
+       .data.int_command = {.value = 2},
+       .execute = execute_int},
+      {.type = COMMAND_SWAP, .execute = execute_swap},
+      {.type = COMMAND_DROP, .execute = execute_drop},
+  };
+
+  const size_t commandsAmount = sizeof(commands) / sizeof(commands[0]);
+  const int expectedStackTopForCommandIndex[] = {1, 2, 1, 2};
+
+  Program *program = program_from_commands(commands, commandsAmount);
+
+  bool ret = run_program_stepwise(compute_context, program,
+                                  expectedStackTopForCommandIndex);
+  destroy_program(program);
+  destroy_compute_context(compute_context);
+  return ret;
+}
+
 bool forth_div_test() {
   ComputeContext *compute_context = create_compute_context();
 
@@ -513,6 +542,7 @@ static Test tests[] = {
     {.name = "forth_mult_test", .test = forth_mult_test},
     {.name = "forth_dup_test", .test = forth_dup_test},
     {.name = "forth_drop_test", .test = forth_drop_test},
+    {.name = "forth_swap_test", .test = forth_swap_test},
     {.name = "forth_div_test", .test = forth_div_test},
     {.name = "forth_if_true_branch_test", .test = forth_if_true_branch_test},
     {.name = "forth_if_false_branch_test", .test = forth_if_false_branch_test},

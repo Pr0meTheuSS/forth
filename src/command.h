@@ -13,6 +13,9 @@ typedef enum CommandType {
   COMMAND_DIV,  // div two top elements from data-stack
   COMMAND_DUP,  // duplicate top element om data-stack
   COMMAND_DROP, // drop top element from data-stack
+  COMMAND_SWAP, // swap two top elements from data-stack
+  COMMAND_OVER, // push to top copy of second element of data-stack
+  COMMAND_ROT,  // convert data-stack top [1 2 3] into [2 3 1]
   COMMAND_IF,
   COMMAND_ELSE,
   COMMAND_THEN,
@@ -72,3 +75,7 @@ void execute_register_custom_word(Command *self, ComputeContext *ctx);
 void execute_custom_command(Command *self, ComputeContext *ctx);
 
 void execute_print(Command *self, ComputeContext *ctx);
+
+void execute_swap(Command *self, ComputeContext *ctx);
+void execute_over(Command *self, ComputeContext *ctx);
+void execute_rot(Command *self, ComputeContext *ctx);

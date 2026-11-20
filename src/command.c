@@ -242,3 +242,60 @@ void execute_print(Command *self, ComputeContext *ctx) {
   }
   printf("%d ", top.value);
 }
+
+void execute_swap(Command *self, ComputeContext *ctx) {
+  if (self->type != COMMAND_SWAP) {
+    return;
+  }
+  Ret top = vm_pop(ctx);
+  if (top.error != 0) {
+    return;
+  }
+  Ret bottom = vm_pop(ctx);
+  if (bottom.error != 0) {
+    return;
+  }
+
+  vm_push(ctx, top.value);
+  vm_push(ctx, bottom.value);
+}
+
+void execute_over(Command *self, ComputeContext *ctx) {
+  if (self->type != COMMAND_OVER) {
+    return;
+  }
+  Ret top = vm_pop(ctx);
+  if (top.error != 0) {
+    return;
+  }
+  Ret bottom = vm_pop(ctx);
+  if (bottom.error != 0) {
+    return;
+  }
+
+  vm_push(ctx, bottom.value);
+  vm_push(ctx, top.value);
+  vm_push(ctx, bottom.value);
+}
+
+void execute_rot(Command *self, ComputeContext *ctx) {
+  if (self->type != COMMAND_ROT) {
+    return;
+  }
+  Ret top = vm_pop(ctx);
+  if (top.error != 0) {
+    return;
+  }
+  Ret mid = vm_pop(ctx);
+  if (mid.error != 0) {
+    return;
+  }
+  Ret bottom = vm_pop(ctx);
+  if (bottom.error != 0) {
+    return;
+  }
+
+  vm_push(ctx, mid.value);
+  vm_push(ctx, top.value);
+  vm_push(ctx, bottom.value);
+}

@@ -27,6 +27,12 @@ static CmdEntry cmds[] = {
       .command_name = ";"}},
     {"DUP",
      {.type = COMMAND_DUP, .execute = execute_dup, .command_name = "DUP"}},
+    {"SWAP",
+     {.type = COMMAND_SWAP, .execute = execute_swap, .command_name = "SWAP"}},
+    {"ROT",
+     {.type = COMMAND_ROT, .execute = execute_rot, .command_name = "ROT"}},
+    {"OVER",
+     {.type = COMMAND_OVER, .execute = execute_over, .command_name = "OVER"}},
     {"DROP",
      {.type = COMMAND_DROP, .execute = execute_drop, .command_name = "DROP"}},
     {"DO", {.type = COMMAND_DO, .execute = execute_do, .command_name = "DO"}},
@@ -57,12 +63,18 @@ static bool map_word_to_command(const Word word, Command *command) {
   if (cmd.type == UNKNOWN) {
     char *endptr;
     long num = strtol(word.word, &endptr, 10);
-    if (endptr != &word.word[strlen(word.word)]) {
+    if (endptr == &word.word[strlen(word.word)]) {
+      cmd = (Command){
+          .type = COMMAND_INT, .execute = execute_int, .command_name = "int"};
+      cmd.data.int_command.value = (int)num;
+    } else {
+      // // TODO handle custom command
+      // cmd =
+      //     (Command){.type = COMMAND_CUSTOM, .execute =
+      //     execute_custom_command};
+      // strncpy(cmd.command_name, word.word, sizeof(cmd.command_name));
       return false;
     }
-    cmd = (Command){
-        .type = COMMAND_INT, .execute = execute_int, .command_name = "int"};
-    cmd.data.int_command.value = (int)num;
   }
   memcpy(command, &cmd, sizeof(*command));
   return true;
