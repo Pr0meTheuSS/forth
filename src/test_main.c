@@ -14,7 +14,7 @@ int main(void) {
   FILE *flog = fopen(log_file, "a+");
 
   logger_set_stream(flog);
-  logger_set_level(LOG_LVL_TRACE);
+  logger_set_level(LOG_LVL_OFF);
   bool ok = true;
 
   ok = ok && avl_tree_run_all_tests();

@@ -429,7 +429,7 @@ bool forth_compile_custom_word_execution() {
       {.type = COMMAND_INT,
        .data.int_command = {.value = 5},
        .execute = execute_int},
-      {.type = UNKNOWN,
+      {.type = COMMAND_CUSTOM,
        .command_name = "square\0",
        .execute = execute_custom_command},
   };
@@ -476,10 +476,10 @@ bool forth_compile_custom_word_execution_twice() {
       {.type = COMMAND_INT,
        .data.int_command = {.value = 2},
        .execute = execute_int},
-      {.type = UNKNOWN,
+      {.type = COMMAND_CUSTOM,
        .command_name = "square\0",
        .execute = execute_custom_command},
-      {.type = UNKNOWN,
+      {.type = COMMAND_CUSTOM,
        .command_name = "square\0",
        .execute = execute_custom_command},
   };

@@ -5,9 +5,6 @@
 
 typedef struct ComputeContext ComputeContext;
 
-ComputeContext *create_compute_context();
-void destroy_compute_context(ComputeContext *);
-
 typedef enum CommandType {
   COMMAND_INT,  // push int value to data-stack
   COMMAND_SUM,  // sum two top elements from data-stack
@@ -21,10 +18,11 @@ typedef enum CommandType {
   COMMAND_THEN,
   COMMAND_DO,
   COMMAND_LOOP,
-  COMMAND_EMIT,
+  COMMAND_PRINT,
   COMMAND_REGISTER_CUSTOM_WORD,
   COMMAND_COMPILE,
   COMMAND_END_COMPILE,
+  COMMAND_CUSTOM,
   UNKNOWN
 } CommandType;
 
@@ -40,7 +38,7 @@ typedef struct Command {
   CommandType type;
   CommandData data;
   void (*execute)(struct Command *self, ComputeContext *ctx);
-  const char command_name[64];
+  char command_name[64];
 } Command;
 
 typedef struct Program Program;
@@ -72,3 +70,5 @@ void execute_end_compile(Command *self, ComputeContext *ctx);
 void execute_register_custom_word(Command *self, ComputeContext *ctx);
 
 void execute_custom_command(Command *self, ComputeContext *ctx);
+
+void execute_print(Command *self, ComputeContext *ctx);

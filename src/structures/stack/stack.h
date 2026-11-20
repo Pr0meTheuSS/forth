@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 
 #define maxStackSize 1024
 
@@ -18,3 +19,5 @@ void destroy_stack(Stack *);
 Ret push(Stack *stack, int value);
 Ret top(Stack *stack);
 Ret pop(Stack *stack);
+
+size_t stack_size(const Stack *stack);

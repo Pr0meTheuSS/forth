@@ -37,3 +37,5 @@ Ret pop(Stack *stack) {
   }
   return (Ret){.value = stack->data[stack->topIndex--], .error = 0};
 }
+
+size_t stack_size(const Stack *stack) { return (size_t)(stack->topIndex + 1); }

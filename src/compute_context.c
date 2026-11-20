@@ -1,9 +1,12 @@
 #include "compute_context.h"
 #include "command.h"
+#include "logger.h"
 #include "structures/avl_tree/avl-tree.h"
+#include "structures/stack/stack.h"
 #include "structures/vector/vector.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -27,6 +30,8 @@ ComputeContext *create_compute_context() {
   }
   ret->stack = create_stack();
   ret->commands_vector = create_vector();
+  ret->program = malloc(sizeof(Program));
+  ret->program->commands = create_vector();
   return ret;
 }
 
@@ -48,6 +53,8 @@ void destroy_compute_context(ComputeContext *ctx) {
   destroy_avl_tree(ctx->custom_commands_tree);
   destroy_vector(ctx->commands_vector);
   destroy_stack(ctx->stack);
+  destroy_vector(ctx->program->commands);
+  free(ctx->program);
   free(ctx);
 }
 
@@ -76,14 +83,18 @@ void vm_execute_program(ComputeContext *ctx, Program *program) {
   }
 }
 
+void handle_compile(ComputeContext *ctx, Command *command) {
+  if (command->type == COMMAND_END_COMPILE) {
+    ctx->compile_mode = NO_COMPILE;
+    return;
+  }
+  vector_append(ctx->commands_vector, command, sizeof(*command));
+  ctx->current_command_index++;
+}
+
 void vm_execute_command(ComputeContext *ctx, Command *command) {
   if (ctx->compile_mode == COMPILE) {
-    if (command->type == COMMAND_END_COMPILE) {
-      ctx->compile_mode = NO_COMPILE;
-      return;
-    }
-    vector_append(ctx->commands_vector, command, sizeof(*command));
-    ctx->current_command_index++;
+    handle_compile(ctx, command);
     return;
   }
 

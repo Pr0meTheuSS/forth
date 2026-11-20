@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -200,7 +201,7 @@ void execute_end_compile(Command *self, ComputeContext *ctx) {
 }
 
 void execute_custom_command(Command *self, ComputeContext *ctx) {
-  if (self->type != UNKNOWN) {
+  if (self->type != COMMAND_CUSTOM) {
     return;
   }
   AvlTree *tree = ctx->custom_commands_tree;
@@ -227,4 +228,17 @@ void execute_custom_command(Command *self, ComputeContext *ctx) {
 
   inner_ctx->stack = inner_stack;
   destroy_compute_context(inner_ctx);
+}
+
+void execute_print(Command *self, ComputeContext *ctx) {
+  if (self->type != COMMAND_PRINT) {
+    return;
+  }
+  // TODO wrap printf
+  Ret top = vm_top(ctx);
+  if (top.error == -1) {
+    printf("Error while top stack\n");
+    return;
+  }
+  printf("%d ", top.value);
 }

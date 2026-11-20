@@ -34,6 +34,9 @@ typedef struct ComputeContext {
   char current_compiling_command_name[64];
 } ComputeContext;
 
+ComputeContext *create_compute_context();
+void destroy_compute_context(ComputeContext *);
+
 Ret vm_push(ComputeContext *ctx, int value);
 Ret vm_pop(ComputeContext *ctx);
 Ret vm_top(ComputeContext *ctx);
